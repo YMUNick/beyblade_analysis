@@ -1,0 +1,455 @@
+<!--
+  BEY SCAN X — 戰鬥陀螺天梯查詢
+  搜尋戰刃 → 對照台灣天梯 → 顯示階級 / 原裝配件 / 建議配置
+  天梯資料源：@stan_yao / stan-yao.github.io/beyblade_x_tier
+  資料為快照，非官方粉絲工具，僅供參考。
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BEY SCAN X ｜ 戰鬥陀螺天梯查詢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#07080d; --bg2:#0c0e16; --panel:#12141f; --panel2:#171a27;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#eaf1f6; --muted:#8a94a6; --dim:#5a6272;
+    --accent:#12efce; --accent2:#0bd0f0;
+    --atk:#ff3b46; --def:#3d7bff; --sta:#22d36b; --bal:#b76bff; --spc:#ff6bd6;
+    --tS:#ffcf3a; --tA:#12efce; --tB:#6ea8ff; --tC:#b7c0cc; --tD:#7a8594; --tX:#ff6bd6;
+    --shadow:0 20px 60px rgba(0,0,0,.55);
+    --clip:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);
+    font-family:"Noto Sans TC",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    scroll-behavior:smooth}
+  body{
+    min-height:100vh;overflow-x:hidden;position:relative;
+    background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(18,239,206,.10),transparent 60%),
+      radial-gradient(900px 500px at -10% 20%,rgba(255,59,70,.08),transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg2) 40%,var(--bg));
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;z-index:0;
+    background:repeating-linear-gradient(115deg,transparent 0 38px,rgba(255,255,255,.012) 38px 39px);}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 90px;position:relative;z-index:1}
+  ::selection{background:var(--accent);color:#04121a}
+
+  /* ── top bar ── */
+  .top{display:flex;align-items:center;gap:12px;padding:22px 4px 10px;position:relative}
+  .top::after{content:"";position:absolute;left:4px;right:4px;bottom:0;height:2px;
+    background:linear-gradient(90deg,var(--accent),transparent 70%)}
+  .mark{position:relative;font-family:"Orbitron";font-weight:900;font-size:1.28rem;
+    letter-spacing:.06em;line-height:1;display:flex;align-items:center;gap:2px}
+  .mark .x{color:var(--bg);background:linear-gradient(150deg,var(--accent),var(--accent2));
+    padding:3px 8px 4px;margin-left:4px;transform:skewX(-9deg);
+    box-shadow:0 0 18px rgba(18,239,206,.45)}
+  .mark .x span{display:inline-block;transform:skewX(9deg)}
+  .tagline{font-family:"Orbitron";font-size:.56rem;letter-spacing:.32em;color:var(--muted);
+    margin-left:auto;text-transform:uppercase;white-space:nowrap}
+
+  /* ── hero ── */
+  .hero{padding:30px 0 8px;text-align:center}
+  .hero h1{font-family:"Orbitron";font-weight:900;line-height:1.02;
+    font-size:clamp(2.1rem,8vw,3.5rem);letter-spacing:.01em}
+  .hero h1 .grad{background:linear-gradient(100deg,#fff 10%,var(--accent) 55%,var(--accent2));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{color:var(--muted);margin-top:14px;font-size:.98rem;line-height:1.7;font-weight:500}
+  .hero .sub b{color:var(--text);font-weight:700}
+
+  /* ── search ── */
+  .searchbox{margin-top:26px;position:relative}
+  .searchbox svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);
+    width:20px;height:20px;color:var(--accent);pointer-events:none}
+  #search{width:100%;padding:18px 18px 18px 50px;font-size:1rem;color:var(--text);
+    font-family:"Noto Sans TC",sans-serif;background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--line2);clip-path:var(--clip);outline:none;transition:border-color .2s}
+  #search::placeholder{color:var(--dim)}
+  #search:focus{border-color:var(--accent)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:"Orbitron";font-size:.66rem;letter-spacing:.08em;padding:8px 14px;
+    border:1px solid var(--line2);color:var(--muted);background:rgba(255,255,255,.02);
+    cursor:pointer;transition:.15s;clip-path:polygon(0 0,100% 0,100% 100%,6px 100%,0 calc(100% - 6px))}
+  .chip:hover{color:var(--text);border-color:var(--line2)}
+  .chip.on{color:#04121a;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .count{margin-top:14px;font-family:"Orbitron";font-size:.66rem;letter-spacing:.14em;
+    color:var(--dim)}
+
+  /* ── results grid ── */
+  .results{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.results{grid-template-columns:1fr}}
+  .rc{display:flex;gap:12px;align-items:center;padding:12px;cursor:pointer;
+    background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);
+    transition:transform .12s,border-color .2s}
+  .rc:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .rc .thumb{flex:0 0 auto;width:56px;height:56px;border-radius:8px;overflow:hidden;
+    background:#05060a;display:grid;place-items:center}
+  .rc .thumb img{width:100%;height:100%;object-fit:contain}
+  .rc .rc-body{min-width:0;flex:1}
+  .rc .rc-name{font-weight:700;font-size:.92rem;line-height:1.2;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rc .rc-id{font-family:"Orbitron";font-size:.56rem;letter-spacing:.1em;color:var(--dim);margin-top:3px}
+  .rc .rc-tags{display:flex;gap:6px;margin-top:8px;align-items:center}
+  .tbadge{font-family:"Orbitron";font-size:.56rem;font-weight:700;letter-spacing:.06em;
+    padding:3px 7px;color:#06090f}
+  .tierpill{font-family:"Orbitron";font-size:.6rem;font-weight:900;letter-spacing:.04em;
+    padding:2px 8px;border:1.5px solid currentColor}
+  .empty{margin-top:24px;text-align:center;color:var(--dim);font-size:.9rem;line-height:1.8;
+    padding:30px 20px;border:1px dashed var(--line2);clip-path:var(--clip)}
+
+  /* ── detail card ── */
+  .detail{display:none;margin-top:24px;animation:rise .5s ease both}
+  .detail.show{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  .card{background:linear-gradient(165deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);clip-path:var(--clip);overflow:hidden;box-shadow:var(--shadow)}
+  .card-hero{position:relative;display:flex;gap:18px;padding:22px 20px;
+    background:linear-gradient(120deg,rgba(18,239,206,.10),transparent 55%);
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .card-hero .pic{flex:0 0 auto;width:130px;height:130px;background:#05060a;
+    border:1px solid var(--line2);display:grid;place-items:center;overflow:hidden;
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+  .card-hero .pic img{width:100%;height:100%;object-fit:contain}
+  .card-hero .meta{flex:1;min-width:200px}
+  .scan-tag{position:absolute;top:16px;right:18px;font-family:"Orbitron";font-size:.56rem;
+    letter-spacing:.2em;color:var(--accent);display:flex;align-items:center;gap:6px}
+  .scan-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 8px var(--accent)}
+  .r-kicker{font-family:"Orbitron";font-size:.6rem;letter-spacing:.24em;color:var(--muted)}
+  .r-name{font-family:"Orbitron";font-weight:900;font-size:clamp(1.5rem,6vw,2.1rem);
+    line-height:1.05;margin-top:8px}
+  .r-id{color:var(--muted);font-size:.74rem;font-weight:500;margin-top:6px;
+    letter-spacing:.04em;font-family:"Orbitron"}
+  .r-badges{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .bigbadge{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .bigbadge .hex{width:56px;height:56px;display:grid;place-items:center;
+    clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+    font-family:"Orbitron";font-weight:900;font-size:1.3rem;color:#06090f}
+  .bigbadge .tt{width:56px;height:56px;display:grid;place-items:center;
+    font-family:"Orbitron";font-weight:900;font-size:1.5rem;
+    border:2px solid currentColor;clip-path:var(--clip)}
+  .bigbadge .lbl{font-family:"Orbitron";font-size:.56rem;letter-spacing:.14em;color:var(--muted)}
+
+  .block{padding:20px}
+  .block h4{font-family:"Orbitron";font-size:.64rem;letter-spacing:.2em;
+    color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+  .block h4::after{content:"";flex:1;height:1px;background:var(--line)}
+  .verdict{font-size:.95rem;line-height:1.85;color:#dbe4ec;
+    padding:14px 16px;border-left:3px solid var(--accent);background:rgba(18,239,206,.05)}
+  .parts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  @media(max-width:520px){.parts{grid-template-columns:1fr}}
+  .partcard{border:1px solid var(--line);background:rgba(255,255,255,.02);padding:13px 15px}
+  .partcard .pk{font-family:"Orbitron";font-size:.56rem;letter-spacing:.12em;color:var(--dim)}
+  .partcard .pv{font-weight:700;font-size:1rem;margin-top:6px;display:flex;align-items:center;gap:9px}
+  .partcard .pv .pt{font-family:"Orbitron";font-size:.62rem;font-weight:900;
+    padding:2px 8px;border:1.5px solid currentColor}
+  .combo{display:flex;align-items:center;gap:12px;padding:13px 15px;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:.9rem;line-height:1.5}
+  .combo .cn{font-family:"Orbitron";font-size:.7rem;color:var(--accent);flex:0 0 auto;
+    width:26px;height:26px;display:grid;place-items:center;border:1px solid rgba(18,239,206,.4)}
+  .srcline{font-size:.82rem;color:var(--muted);margin-top:14px}
+  .srcline b{color:var(--text);font-weight:700}
+
+  /* photo (personal record) */
+  .photo-sec{border-top:1px solid var(--line);padding:20px}
+  .drop{padding:26px 20px;text-align:center;cursor:pointer;border:1px dashed var(--line2);
+    background:rgba(255,255,255,.015);transition:background .2s;
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+  .drop:hover,.drop.drag{background:rgba(18,239,206,.05)}
+  .drop:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .drop .di{font-family:"Orbitron";font-weight:700;font-size:.86rem;letter-spacing:.04em}
+  .drop .dp{color:var(--muted);font-size:.76rem;margin-top:7px}
+  .drop .fmt{color:var(--dim);font-size:.64rem;margin-top:9px;font-family:"Orbitron";letter-spacing:.14em}
+  .userphoto{display:none;margin-top:14px}
+  .userphoto.show{display:block}
+  .userphoto .pf{position:relative;border:1px solid var(--line2);overflow:hidden;background:#000;
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+  .userphoto .pf img{display:block;width:100%;max-height:300px;object-fit:contain;background:#05060a}
+  .btn{font-family:"Orbitron";font-weight:700;letter-spacing:.08em;border:0;cursor:pointer;
+    padding:13px 22px;font-size:.82rem;color:#04121a;
+    background:linear-gradient(100deg,var(--accent),var(--accent2));
+    clip-path:polygon(0 0,100% 0,100% 100%,10px 100%,0 calc(100% - 10px));
+    transition:transform .12s,box-shadow .2s;box-shadow:0 8px 26px rgba(18,239,206,.28)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(18,239,206,.42)}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .photo-actions{display:flex;gap:10px;margin-top:12px}
+
+  .again{margin-top:20px;text-align:center}
+
+  /* footer */
+  .foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);text-align:center;
+    color:var(--dim);font-size:.74rem;line-height:1.9}
+  .foot a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line2)}
+  .foot a:hover{color:var(--accent)}
+  .foot .db{display:inline-flex;align-items:center;gap:8px;font-family:"Orbitron";
+    font-size:.6rem;letter-spacing:.16em;padding:5px 11px;border:1px solid var(--line);margin-top:10px}
+  .foot .db i{width:6px;height:6px;border-radius:50%;background:var(--sta);box-shadow:0 0 8px var(--sta)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms!important;transition-duration:.1ms!important}
+  }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="mark">BEY&nbsp;SCAN<span class="x"><span>X</span></span></div>
+    <div class="tagline">戰刃辨識 · 天梯戰力</div>
+  </div>
+
+  <div class="hero">
+    <h1>查你的<br><span class="grad">戰鬥陀螺</span></h1>
+    <p class="sub">
+      搜尋你的戰刃，<b>對照台灣天梯</b>，<br>
+      看它的階級、原裝配件與<b>建議配置</b>。
+    </p>
+  </div>
+
+  <!-- search -->
+  <div class="searchbox">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+    </svg>
+    <input id="search" type="text" autocomplete="off"
+      placeholder="輸入中文名或型號，例如：龍劍 / BX-01" aria-label="搜尋戰刃">
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+
+  <div class="results" id="results"></div>
+  <div class="empty" id="empty" style="display:none"></div>
+
+  <!-- detail -->
+  <div class="detail" id="detail"></div>
+
+  <div class="foot">
+    以天梯資料比對 · 資料源
+    <a href="https://stan-yao.github.io/beyblade_x_tier/" target="_blank" rel="noopener">@stan_yao</a>
+    / <span>RENLIgames · anguzyao</span><br>
+    非官方粉絲工具，天梯定位僅供參考。<br>
+    <span class="db"><i></i><span id="dbText"></span></span>
+  </div>
+</div>
+
+<input type="file" id="file" accept="image/*" hidden>
+
+<script>
+/* ── 天梯資料快照（來源：@stan_yao Google Sheet） ── */
+const BLADES = __BLADES_JSON__;
+const SNAPSHOT_DATE = "__SNAPSHOT_DATE__";
+
+/* ── 對照表 ── */
+const TYPE = {
+  attack:  {zh:"攻擊", ini:"攻", color:"var(--atk)", trait:"主打撞擊爆發，正面壓制"},
+  defense: {zh:"防禦", ini:"防", color:"var(--def)", trait:"耐撞抗攻，穩守反擊"},
+  stamina: {zh:"持久", ini:"久", color:"var(--sta)", trait:"低耗轉久，比生存耐力"},
+  balance: {zh:"平衡", ini:"衡", color:"var(--bal)", trait:"攻守兼備，泛用性高"},
+  special: {zh:"特殊", ini:"特", color:"var(--spc)", trait:"特殊機制／限定款"},
+};
+const DEF_TYPE = {zh:"未分類", ini:"?", color:"var(--dim)", trait:"天梯尚未分類"};
+function typeInfo(t){ return TYPE[t] || DEF_TYPE; }
+
+// 階級排序權重（高→低）
+const TIER_RANK = {"S+":14,"S":13,"A+":12,"A":11,"B+":10,"B":9,"C+":8,"C":7,
+  "D+":6,"D":5,"E+":4,"E":3,"X":2,"-":-1,"":-1};
+function tierRank(t){ return (t in TIER_RANK) ? TIER_RANK[t] : 0; }
+function tierColor(t){
+  const c=(t||"").replace("+","");
+  if(c==="S")return "var(--tS)"; if(c==="A")return "var(--tA)";
+  if(c==="B")return "var(--tB)"; if(c==="C")return "var(--tC)";
+  if(c==="D"||c==="E")return "var(--tD)"; if(c==="X")return "var(--tX)";
+  return "var(--dim)";
+}
+function tierLabel(t){ return (!t||t==="-") ? "未列" : t; }
+function partTierColor(t){ return tierColor(t); }
+
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ── DOM ── */
+const searchEl=document.getElementById("search"),
+  resultsEl=document.getElementById("results"),
+  emptyEl=document.getElementById("empty"),
+  countEl=document.getElementById("count"),
+  filtersEl=document.getElementById("filters"),
+  detailEl=document.getElementById("detail"),
+  dbText=document.getElementById("dbText"),
+  fileEl=document.getElementById("file");
+
+let activeType="all";
+let currentBladeIdx=null;
+let userPhotoSrc=null;
+
+/* ── 篩選晶片 ── */
+const FILTERS=[["all","全部"],["attack","攻擊"],["defense","防禦"],
+  ["stamina","持久"],["balance","平衡"],["special","特殊"]];
+filtersEl.innerHTML=FILTERS.map(f=>
+  `<div class="chip${f[0]==="all"?" on":""}" data-t="${f[0]}">${f[1]}</div>`).join("");
+filtersEl.querySelectorAll(".chip").forEach(ch=>ch.addEventListener("click",()=>{
+  filtersEl.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+  ch.classList.add("on"); activeType=ch.dataset.t; render();
+}));
+
+dbText.textContent="天梯資料快照 · "+BLADES.length+" 款戰刃 · "+SNAPSHOT_DATE;
+
+/* ── 搜尋 / 渲染清單 ── */
+searchEl.addEventListener("input",render);
+
+function matches(){
+  const q=searchEl.value.trim().toLowerCase();
+  let list=BLADES.filter(b=>{
+    if(activeType!=="all" && b.type!==activeType) return false;
+    if(!q) return true;
+    return (b.name||"").toLowerCase().includes(q) || (b.id||"").toLowerCase().includes(q);
+  });
+  list.sort((a,b)=> tierRank(b.tier)-tierRank(a.tier) || a.name.localeCompare(b.name,"zh-Hant"));
+  return list;
+}
+
+function render(){
+  const list=matches();
+  const q=searchEl.value.trim();
+  countEl.textContent = list.length+" 款符合" + (q?`（關鍵字「${q}」）`:activeType!=="all"?"":" · 依天梯排序");
+  if(!list.length){
+    resultsEl.innerHTML="";
+    emptyEl.style.display="block";
+    emptyEl.innerHTML="找不到符合的戰刃。<br>試試輸入中文名（如「龍劍」）或型號（如「BX-34」）。";
+    return;
+  }
+  emptyEl.style.display="none";
+  const cap=q?list.length:Math.min(list.length,60);
+  resultsEl.innerHTML=list.slice(0,cap).map(b=>{
+    const ti=typeInfo(b.type), tc=tierColor(b.tier);
+    const idx=BLADES.indexOf(b);
+    return `<div class="rc" data-i="${idx}" role="button" tabindex="0">
+      <div class="thumb">${b.img?`<img src="${esc(b.img)}" alt="" loading="lazy">`:""}</div>
+      <div class="rc-body">
+        <div class="rc-name">${esc(b.name)}</div>
+        <div class="rc-id">${esc(b.id||"")}</div>
+        <div class="rc-tags">
+          <span class="tbadge" style="background:${ti.color}">${ti.zh}</span>
+          <span class="tierpill" style="color:${tc}">${tierLabel(b.tier)}</span>
+        </div>
+      </div></div>`;
+  }).join("");
+  resultsEl.querySelectorAll(".rc").forEach(el=>{
+    const open=()=>showDetail(+el.dataset.i);
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+  });
+}
+
+/* ── 詳細卡 ── */
+function verdict(b){
+  const ti=typeInfo(b.type), tl=tierLabel(b.tier);
+  let s=`${ti.zh}型戰刃，天梯定位 ${tl}。${ti.trait}。`;
+  const r=tierRank(b.tier);
+  if(r>=11) s+="屬強勢牌位，實戰表現受肯定。";
+  else if(r>=7) s+="中段班，穩定可用。";
+  else if(b.tier==="-"||r<0) s+="目前天梯未列，資料僅供參考。";
+  return s;
+}
+
+function showDetail(i){
+  const b=BLADES[i]; if(!b) return;
+  currentBladeIdx=i; userPhotoSrc=null;
+  const ti=typeInfo(b.type), tc=tierColor(b.tier);
+  const parts=[];
+  if(b.ratchet) parts.push(`<div class="partcard"><div class="pk">原裝固鎖 RATCHET</div>
+    <div class="pv">${esc(b.ratchet)}${b.ratchetTier?`<span class="pt" style="color:${partTierColor(b.ratchetTier)}">${esc(b.ratchetTier)}</span>`:""}</div></div>`);
+  if(b.bit) parts.push(`<div class="partcard"><div class="pk">原裝軸心 BIT</div>
+    <div class="pv">${esc(b.bit)}${b.bitTier?`<span class="pt" style="color:${partTierColor(b.bitTier)}">${esc(b.bitTier)}</span>`:""}</div></div>`);
+
+  detailEl.innerHTML=`
+  <div class="card">
+    <div class="card-hero">
+      <div class="scan-tag">TIER MATCH</div>
+      <div class="pic">${b.img?`<img src="${esc(b.img)}" alt="${esc(b.name)}">`:"—"}</div>
+      <div class="meta">
+        <div class="r-kicker">天梯分析</div>
+        <div class="r-name">${esc(b.name)}</div>
+        <div class="r-id">${esc(b.id||"")}</div>
+        <div class="r-badges">
+          <div class="bigbadge"><div class="hex" style="background:${ti.color}">${ti.ini}</div>
+            <div class="lbl">${ti.zh}型</div></div>
+          <div class="bigbadge"><div class="tt" style="color:${tc}">${tierLabel(b.tier)}</div>
+            <div class="lbl">天梯</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h4>天梯定位 VERDICT</h4>
+      <div class="verdict">${esc(verdict(b))}</div>
+
+      ${parts.length?`<h4 style="margin-top:22px">原裝配件 PARTS</h4>
+      <div class="parts">${parts.join("")}</div>`:""}
+
+      ${b.combo?`<h4 style="margin-top:22px">建議配置 COMBO</h4>
+      <div class="combo"><div class="cn">★</div><div>${esc(b.combo)}</div></div>`:""}
+
+      ${b.source?`<div class="srcline">來源產品：<b>${esc(b.source)}</b></div>`:""}
+    </div>
+
+    <div class="photo-sec">
+      <h4 style="font-family:'Orbitron';font-size:.64rem;letter-spacing:.2em;color:var(--muted);
+        margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        附上你的陀螺照片（個人紀錄）</h4>
+      <div class="drop" id="drop" role="button" tabindex="0" aria-label="上傳你的陀螺照片">
+        <div class="di">＋ 拍照 / 上傳照片</div>
+        <div class="dp">點這裡開啟相機，或把照片拖進來（只存在你的裝置，不會上傳）</div>
+        <div class="fmt">JPG · PNG · WEBP</div>
+      </div>
+      <div class="userphoto" id="userphoto">
+        <div class="pf"><img id="userimg" alt="你的陀螺照片"></div>
+        <div class="photo-actions">
+          <button class="btn ghost" id="removePhoto">移除照片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="again">
+    <button class="btn ghost" onclick="closeDetail()">← 查下一顆</button>
+  </div>`;
+
+  detailEl.classList.add("show");
+  bindPhoto();
+  detailEl.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeDetail(){
+  detailEl.classList.remove("show"); detailEl.innerHTML=""; currentBladeIdx=null;
+  document.querySelector(".searchbox").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ── 照片（個人紀錄，純本機顯示） ── */
+function bindPhoto(){
+  const drop=document.getElementById("drop"),
+    userphoto=document.getElementById("userphoto"),
+    userimg=document.getElementById("userimg"),
+    removePhoto=document.getElementById("removePhoto");
+  drop.addEventListener("click",()=>fileEl.click());
+  drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fileEl.click();}});
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag");}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag");}));
+  drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)loadPhoto(f,userimg,drop,userphoto);});
+  fileEl.onchange=e=>{const f=e.target.files[0];if(f)loadPhoto(f,userimg,drop,userphoto);fileEl.value="";};
+  removePhoto.addEventListener("click",()=>{
+    userphoto.classList.remove("show");drop.style.display="block";userimg.src="";userPhotoSrc=null;});
+}
+function loadPhoto(f,userimg,drop,userphoto){
+  if(!f.type.startsWith("image/")) return;
+  const r=new FileReader();
+  r.onload=()=>{userimg.src=r.result;userPhotoSrc=r.result;
+    drop.style.display="none";userphoto.classList.add("show");};
+  r.readAsDataURL(f);
+}
+
+/* ── init ── */
+render();
+</script>
