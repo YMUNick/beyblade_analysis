@@ -4,9 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # 每週一 00:00 UTC 自動重抓天梯資料並重新部署
+    - cron: '0 0 * * 1'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,10 +27,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 只有排程 / 手動觸發才重抓資料；一般 push 直接部署既有 index.html
+      - name: Refresh tier data snapshot
+        if: github.event_name != 'push'
+        run: |
+          curl -sL "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv" -o tools/sheet_raw.csv
+          cd tools
+          node build_data.js
+          SNAPSHOT_DATE=$(date -u +%F) node build_index.js
+
+      - name: Commit refreshed data (if changed)
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "天梯資料無變化，略過提交。"
+          else
+            git commit -m "chore: 自動更新天梯資料快照 ($(date -u +%F))"
+            git push
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
