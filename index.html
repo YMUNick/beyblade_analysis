@@ -78,6 +78,51 @@
   .count{margin-top:14px;font-family:"Orbitron";font-size:.66rem;letter-spacing:.14em;
     color:var(--dim)}
 
+  /* ── tabs ── */
+  .tabs{display:flex;gap:10px;margin-top:26px}
+  .tab{flex:1;font-family:"Orbitron";font-weight:700;font-size:.8rem;letter-spacing:.06em;
+    padding:14px 12px;cursor:pointer;color:var(--muted);border:1px solid var(--line2);
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);
+    transition:.15s}
+  .tab:hover{color:var(--text)}
+  .tab.on{color:#04121a;background:linear-gradient(100deg,var(--accent),var(--accent2));
+    border-color:var(--accent);box-shadow:0 8px 26px rgba(18,239,206,.25)}
+  .tab #favCount{opacity:.85}
+
+  /* ── favorite form (in detail) ── */
+  .fav-field{margin-bottom:12px}
+  .fav-field label{display:block;font-family:"Orbitron";font-size:.56rem;letter-spacing:.12em;
+    color:var(--dim);margin-bottom:6px}
+  .fav-field input,.fav-field textarea{width:100%;padding:11px 13px;font-size:.9rem;color:var(--text);
+    font-family:"Noto Sans TC",sans-serif;background:rgba(255,255,255,.03);
+    border:1px solid var(--line2);outline:none;transition:border-color .2s;resize:vertical}
+  .fav-field input:focus,.fav-field textarea:focus{border-color:var(--accent)}
+  .fav-save{width:100%;margin-top:6px}
+  .fav-msg{text-align:center;font-family:"Orbitron";font-size:.68rem;letter-spacing:.1em;
+    color:var(--sta);margin-top:12px;min-height:16px}
+
+  /* ── favorite card (in favorites view) ── */
+  .fc{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+    overflow:hidden;display:flex;flex-direction:column}
+  .fc .fc-img{height:150px;background:#05060a;display:grid;place-items:center;overflow:hidden;
+    border-bottom:1px solid var(--line)}
+  .fc .fc-img img{width:100%;height:100%;object-fit:contain}
+  .fc .fc-body{padding:14px;flex:1;display:flex;flex-direction:column}
+  .fc .fc-nick{font-weight:700;font-size:1rem;line-height:1.2}
+  .fc .fc-blade{font-size:.74rem;color:var(--muted);margin-top:4px}
+  .fc .fc-tags{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  .fc .fc-note{font-size:.82rem;color:#cdd6df;line-height:1.5;margin-top:10px;
+    white-space:pre-wrap;word-break:break-word}
+  .fc .fc-date{font-family:"Orbitron";font-size:.54rem;letter-spacing:.1em;color:var(--dim);margin-top:10px}
+  .fc .fc-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .fc .fc-actions button{flex:1;font-family:"Orbitron";font-size:.66rem;letter-spacing:.06em;
+    padding:9px 6px;cursor:pointer;border:1px solid var(--line2);background:transparent;
+    color:var(--muted);transition:.15s}
+  .fc .fc-actions button:hover{color:var(--text);border-color:var(--accent)}
+  .fc .fc-actions button.del:hover{color:var(--atk);border-color:var(--atk)}
+
   /* ── results grid ── */
   .results{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
   .rc{display:flex;gap:12px;align-items:center;padding:12px;cursor:pointer;
@@ -208,20 +253,34 @@
     </p>
   </div>
 
-  <!-- search -->
-  <div class="searchbox">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
-    </svg>
-    <input id="search" type="text" autocomplete="off"
-      placeholder="輸入中文名或型號，例如：龍劍 / BX-01" aria-label="搜尋戰刃">
+  <!-- tabs -->
+  <div class="tabs">
+    <button class="tab on" id="tabSearch" data-view="search">🔍 天梯查詢</button>
+    <button class="tab" id="tabFavs" data-view="favs">♥ 我的最愛 <span id="favCount">(0)</span></button>
   </div>
-  <div class="filters" id="filters"></div>
-  <div class="count" id="count"></div>
 
-  <div class="results" id="results"></div>
-  <div class="empty" id="empty" style="display:none"></div>
+  <!-- search view -->
+  <div id="searchView">
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+      <input id="search" type="text" autocomplete="off"
+        placeholder="輸入中文名或型號，例如：龍劍 / BX-01" aria-label="搜尋戰刃">
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="count" id="count"></div>
+    <div class="results" id="results"></div>
+    <div class="empty" id="empty" style="display:none"></div>
+  </div>
+
+  <!-- favorites view -->
+  <div id="favView" style="display:none">
+    <div class="count" id="favInfo"></div>
+    <div class="results" id="favGrid"></div>
+    <div class="empty" id="favEmpty" style="display:none"></div>
+  </div>
 
   <!-- detail -->
   <div class="detail" id="detail"></div>
@@ -253,9 +312,9 @@ const TYPE = {
 const DEF_TYPE = {zh:"未分類", ini:"?", color:"var(--dim)", trait:"天梯尚未分類"};
 function typeInfo(t){ return TYPE[t] || DEF_TYPE; }
 
-// 階級排序權重（高→低）
-const TIER_RANK = {"S+":14,"S":13,"A+":12,"A":11,"B+":10,"B":9,"C+":8,"C":7,
-  "D+":6,"D":5,"E+":4,"E":3,"X":2,"-":-1,"":-1};
+// 階級排序權重（高→低）：X 最高，接著 S+ / S …，最後未列
+const TIER_RANK = {"X":15,"S+":14,"S":13,"A+":12,"A":11,"B+":10,"B":9,"C+":8,"C":7,
+  "D+":6,"D":5,"E+":4,"E":3,"-":-1,"":-1};
 function tierRank(t){ return (t in TIER_RANK) ? TIER_RANK[t] : 0; }
 function tierColor(t){
   const c=(t||"").replace("+","");
@@ -277,11 +336,20 @@ const searchEl=document.getElementById("search"),
   filtersEl=document.getElementById("filters"),
   detailEl=document.getElementById("detail"),
   dbText=document.getElementById("dbText"),
-  fileEl=document.getElementById("file");
+  fileEl=document.getElementById("file"),
+  searchViewEl=document.getElementById("searchView"),
+  favViewEl=document.getElementById("favView"),
+  favGridEl=document.getElementById("favGrid"),
+  favEmptyEl=document.getElementById("favEmpty"),
+  favInfoEl=document.getElementById("favInfo"),
+  favCountEl=document.getElementById("favCount"),
+  tabSearch=document.getElementById("tabSearch"),
+  tabFavs=document.getElementById("tabFavs");
 
 let activeType="all";
 let currentBladeIdx=null;
 let userPhotoSrc=null;
+let editingFavId=null;   // 非 null 表示正在編輯既有收藏
 
 /* ── 篩選晶片 ── */
 const FILTERS=[["all","全部"],["attack","攻擊"],["defense","防禦"],
@@ -352,9 +420,10 @@ function verdict(b){
   return s;
 }
 
-function showDetail(i){
+function showDetail(i, editFav){
   const b=BLADES[i]; if(!b) return;
   currentBladeIdx=i; userPhotoSrc=null;
+  editingFavId = editFav ? editFav.id : null;
   const ti=typeInfo(b.type), tc=tierColor(b.tier);
   const parts=[];
   if(b.ratchet) parts.push(`<div class="partcard"><div class="pk">原裝固鎖 RATCHET</div>
@@ -395,11 +464,22 @@ function showDetail(i){
 
     <div class="photo-sec">
       <h4 style="font-family:'Orbitron';font-size:.64rem;letter-spacing:.2em;color:var(--muted);
-        margin-bottom:12px;display:flex;align-items:center;gap:10px">
-        附上你的陀螺照片（個人紀錄）</h4>
+        margin-bottom:14px;display:flex;align-items:center;gap:10px">
+        ♥ ${editingFavId?"編輯我的陀螺":"加入我的最愛"}</h4>
+
+      <div class="fav-field">
+        <label>暱稱（不填則用戰刃名）</label>
+        <input id="favNick" type="text" maxlength="40" placeholder="例如：我的主力龍劍">
+      </div>
+      <div class="fav-field">
+        <label>備註 / 你的配置</label>
+        <input id="favNote" type="text" maxlength="120" placeholder="例如：龍劍 3-60 F　常勝配置">
+      </div>
+
+      <div class="fav-field"><label>你的陀螺照片（選填，只存在本機）</label></div>
       <div class="drop" id="drop" role="button" tabindex="0" aria-label="上傳你的陀螺照片">
         <div class="di">＋ 拍照 / 上傳照片</div>
-        <div class="dp">點這裡開啟相機，或把照片拖進來（只存在你的裝置，不會上傳）</div>
+        <div class="dp">點這裡開啟相機，或把照片拖進來</div>
         <div class="fmt">JPG · PNG · WEBP</div>
       </div>
       <div class="userphoto" id="userphoto">
@@ -408,21 +488,38 @@ function showDetail(i){
           <button class="btn ghost" id="removePhoto">移除照片</button>
         </div>
       </div>
+
+      <button class="btn fav-save" id="addFav" style="margin-top:16px">
+        ${editingFavId?"儲存變更":"♥ 加入我的最愛"}</button>
+      <div class="fav-msg" id="favMsg"></div>
     </div>
   </div>
 
   <div class="again">
-    <button class="btn ghost" onclick="closeDetail()">← 查下一顆</button>
+    <button class="btn ghost" onclick="closeDetail()">← 返回清單</button>
   </div>`;
 
   detailEl.classList.add("show");
   bindPhoto();
+  bindFavSave();
+  if(editFav){                       // 編輯模式：預填暱稱 / 備註 / 照片
+    document.getElementById("favNick").value = editFav.nick||"";
+    document.getElementById("favNote").value = editFav.note||"";
+    if(editFav.photo){
+      userPhotoSrc = editFav.photo;
+      const ui=document.getElementById("userimg"), dp=document.getElementById("drop"),
+        up=document.getElementById("userphoto");
+      ui.src=editFav.photo; dp.style.display="none"; up.classList.add("show");
+    }
+  }
   detailEl.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function closeDetail(){
-  detailEl.classList.remove("show"); detailEl.innerHTML=""; currentBladeIdx=null;
-  document.querySelector(".searchbox").scrollIntoView({behavior:"smooth",block:"start"});
+  detailEl.classList.remove("show"); detailEl.innerHTML="";
+  currentBladeIdx=null; editingFavId=null; userPhotoSrc=null;
+  (activeView==="favs"?tabFavs:document.querySelector(".tabs"))
+    .scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 /* ── 照片（個人紀錄，純本機顯示） ── */
@@ -443,11 +540,134 @@ function bindPhoto(){
 function loadPhoto(f,userimg,drop,userphoto){
   if(!f.type.startsWith("image/")) return;
   const r=new FileReader();
-  r.onload=()=>{userimg.src=r.result;userPhotoSrc=r.result;
-    drop.style.display="none";userphoto.classList.add("show");};
+  r.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 縮圖壓縮（最長邊 800px、JPEG）以節省 localStorage 空間
+      const MAX=800; let{width:w,height:h}=img;
+      if(w>MAX||h>MAX){ const s=MAX/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
+      const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      let out; try{ out=cv.toDataURL("image/jpeg",0.82); }catch(e){ out=r.result; }
+      userPhotoSrc=out; userimg.src=out;
+      drop.style.display="none"; userphoto.classList.add("show");
+    };
+    img.onerror=()=>{userPhotoSrc=r.result;userimg.src=r.result;
+      drop.style.display="none";userphoto.classList.add("show");};
+    img.src=r.result;
+  };
   r.readAsDataURL(f);
 }
 
+/* ══════════════════════════════════════════════════
+   我的最愛（localStorage）
+   ══════════════════════════════════════════════════ */
+const FAV_KEY="beyscan_favs";
+let activeView="search";
+
+function loadFavs(){ try{return JSON.parse(localStorage.getItem(FAV_KEY))||[];}catch(e){return [];} }
+function saveFavs(a){ localStorage.setItem(FAV_KEY,JSON.stringify(a)); updateFavCount(); }
+function updateFavCount(){ favCountEl.textContent="("+loadFavs().length+")"; }
+function findBladeIndex(id,name){
+  let i=BLADES.findIndex(b=>b.id&&b.id===id&&b.name===name);
+  if(i<0) i=BLADES.findIndex(b=>b.name===name);
+  return i;
+}
+
+function bindFavSave(){
+  const btn=document.getElementById("addFav"), msg=document.getElementById("favMsg");
+  btn.addEventListener("click",()=>{
+    const b=BLADES[currentBladeIdx]; if(!b) return;
+    const nick=document.getElementById("favNick").value.trim();
+    const note=document.getElementById("favNote").value.trim();
+    const favs=loadFavs();
+    const entry={
+      id: editingFavId || ("f"+Date.now()+Math.floor(Math.random()*1000)),
+      bladeId:b.id||"", bladeName:b.name, type:b.type, tier:b.tier, img:b.img||"",
+      nick, note, photo:userPhotoSrc||null, ts:Date.now()
+    };
+    if(editingFavId){
+      const k=favs.findIndex(f=>f.id===editingFavId);
+      if(k>=0){ entry.ts=favs[k].ts; favs[k]=entry; }
+      else favs.push(entry);
+    } else favs.push(entry);
+    try{ saveFavs(favs); }
+    catch(e){ msg.style.color="var(--atk)";
+      msg.textContent="儲存失敗：本機空間可能已滿（照片太多），請刪除部分收藏。"; return; }
+    msg.style.color="var(--sta)";
+    msg.textContent = editingFavId ? "✓ 已更新收藏" : "♥ 已加入我的最愛";
+    editingFavId=entry.id;
+    btn.textContent="儲存變更";
+    document.querySelector(".photo-sec h4").innerHTML="♥ 編輯我的陀螺";
+  });
+}
+
+function renderFavs(){
+  const favs=loadFavs().slice().sort((a,b)=>b.ts-a.ts);
+  favInfoEl.textContent=favs.length+" 顆收藏 · 儲存在此裝置";
+  if(!favs.length){
+    favGridEl.innerHTML="";
+    favEmptyEl.style.display="block";
+    favEmptyEl.innerHTML="還沒有收藏。<br>到「天梯查詢」點一顆戰刃，填暱稱／照片後按 <b>♥ 加入我的最愛</b>。";
+    return;
+  }
+  favEmptyEl.style.display="none";
+  favGridEl.innerHTML=favs.map(f=>{
+    const ti=typeInfo(f.type), tc=tierColor(f.tier);
+    const pic=f.photo||f.img;
+    const d=new Date(f.ts);
+    const ds=d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
+    return `<div class="fc">
+      <div class="fc-img">${pic?`<img src="${esc(pic)}" alt="" loading="lazy">`:""}</div>
+      <div class="fc-body">
+        <div class="fc-nick">${esc(f.nick||f.bladeName)}</div>
+        <div class="fc-blade">${esc(f.bladeName)}${f.bladeId?` · ${esc(f.bladeId)}`:""}</div>
+        <div class="fc-tags">
+          <span class="tbadge" style="background:${ti.color}">${ti.zh}</span>
+          <span class="tierpill" style="color:${tc}">${tierLabel(f.tier)}</span>
+        </div>
+        ${f.note?`<div class="fc-note">${esc(f.note)}</div>`:""}
+        <div class="fc-date">收藏於 ${ds}</div>
+        <div class="fc-actions">
+          <button data-act="view" data-id="${f.id}">檢視</button>
+          <button data-act="edit" data-id="${f.id}">編輯</button>
+          <button class="del" data-act="del" data-id="${f.id}">刪除</button>
+        </div>
+      </div></div>`;
+  }).join("");
+  favGridEl.querySelectorAll("button[data-act]").forEach(btn=>{
+    btn.addEventListener("click",()=>favAction(btn.dataset.act, btn.dataset.id));
+  });
+}
+
+function favAction(act,id){
+  const favs=loadFavs();
+  const f=favs.find(x=>x.id===id); if(!f) return;
+  if(act==="del"){
+    if(!confirm(`確定刪除「${f.nick||f.bladeName}」？`)) return;
+    saveFavs(favs.filter(x=>x.id!==id)); renderFavs(); return;
+  }
+  const idx=findBladeIndex(f.bladeId,f.bladeName);
+  if(idx<0){ alert("找不到對應的戰刃（天梯資料可能已更新）。"); return; }
+  switchView("search", true);
+  showDetail(idx, act==="edit" ? f : undefined);
+}
+
+/* ── 分頁切換 ── */
+function switchView(v, keepDetail){
+  activeView=v;
+  const isFavs=v==="favs";
+  searchViewEl.style.display=isFavs?"none":"block";
+  favViewEl.style.display=isFavs?"block":"none";
+  tabSearch.classList.toggle("on",!isFavs);
+  tabFavs.classList.toggle("on",isFavs);
+  if(!keepDetail){ detailEl.classList.remove("show"); detailEl.innerHTML=""; editingFavId=null; }
+  if(isFavs) renderFavs();
+}
+tabSearch.addEventListener("click",()=>switchView("search"));
+tabFavs.addEventListener("click",()=>switchView("favs"));
+
 /* ── init ── */
+updateFavCount();
 render();
 </script>
