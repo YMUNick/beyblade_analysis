@@ -191,6 +191,9 @@
     color:#dbe4ec;border:1px solid var(--line);background:rgba(255,255,255,.02)}
   .suggest li::before{content:"▸";position:absolute;left:14px;top:12px;color:var(--accent);
     font-weight:900}
+  .combo-link{color:var(--accent);font-weight:700;text-decoration:none;
+    border-bottom:1px dashed var(--accent);cursor:pointer;padding:0 1px}
+  .combo-link:hover{color:var(--accent2);border-bottom-style:solid}
   .card{background:linear-gradient(165deg,var(--panel2),var(--panel));
     border:1px solid var(--line);clip-path:var(--clip);overflow:hidden;box-shadow:var(--shadow)}
   .card-hero{position:relative;display:flex;gap:18px;padding:22px 20px;
@@ -548,20 +551,34 @@ function verdict(b){
   return s;
 }
 
-// 建議（明確條列）
+// 依名稱判斷零件種類（有「字-數字」者為固鎖，其餘為軸心）
+function partKindOf(name){ return /^[0-9A-Za-z]+-\d+$/.test(name) ? "ratchet" : "bit"; }
+// 把配置字串裡出現的固鎖／軸心名稱轉成可點的連結（會跳到配件天梯）
+function linkifyCombo(str){
+  return String(str).split(/([\s,，/｜|：:])/).map(tok=>{
+    if(tok==="\n"||tok==="\r") return "<br>";
+    if(tok && Object.prototype.hasOwnProperty.call(PART_IMG,tok)){
+      const k=partKindOf(tok);
+      return `<a class="combo-link" href="javascript:void 0" onclick="gotoPart('${k}','${esc(tok)}');return false">${esc(tok)}</a>`;
+    }
+    return esc(tok);
+  }).join("");
+}
+
+// 建議（明確條列，回傳已處理好的安全 HTML）
 function suggestion(b){
   const out=[], r=tierRank(b.tier);
-  if(b.combo) out.push(`熱門配置：${b.combo}`);
-  if(b.tier==="X"||r>=13)      out.push("可作為主力直接參賽，優先投資與練習。");
-  else if(r>=11)              out.push("值得培養，搭配高階固鎖／軸心可再上一階。");
-  else if(r>=9)              out.push("適合日常對戰與練手，競技場前建議微調配件。");
-  else if(r>=7)              out.push("適合作為練習或收藏，競技建議改裝補強。");
-  else if(r>0)              out.push("實戰偏弱，建議拆件與其他強刃混搭使用。");
-  else                     out.push("天梯未列，可自行測試手感再決定是否投入。");
+  if(b.combo) out.push(`熱門配置：${linkifyCombo(b.combo)}`);   // 內含零件連結
+  if(b.tier==="X"||r>=13)      out.push(esc("可作為主力直接參賽，優先投資與練習。"));
+  else if(r>=11)              out.push(esc("值得培養，搭配高階固鎖／軸心可再上一階。"));
+  else if(r>=9)              out.push(esc("適合日常對戰與練手，競技場前建議微調配件。"));
+  else if(r>=7)              out.push(esc("適合作為練習或收藏，競技建議改裝補強。"));
+  else if(r>0)              out.push(esc("實戰偏弱，建議拆件與其他強刃混搭使用。"));
+  else                     out.push(esc("天梯未列，可自行測試手感再決定是否投入。"));
   const lowR=b.ratchet && b.ratchetTier && tierRank(b.ratchetTier)>0 && tierRank(b.ratchetTier)<9;
   const lowB=b.bit && b.bitTier && tierRank(b.bitTier)>0 && tierRank(b.bitTier)<9;
-  if(lowR) out.push(`原裝固鎖 ${b.ratchet}（${b.ratchetTier}）階級偏低，可換更高階固鎖提升表現。`);
-  if(lowB) out.push(`原裝軸心 ${b.bit}（${b.bitTier}）階級偏低，可依打法更換軸心。`);
+  if(lowR) out.push(esc(`原裝固鎖 ${b.ratchet}（${b.ratchetTier}）階級偏低，可換更高階固鎖提升表現。`));
+  if(lowB) out.push(esc(`原裝軸心 ${b.bit}（${b.bitTier}）階級偏低，可依打法更換軸心。`));
   return out;
 }
 
@@ -615,7 +632,7 @@ function showDetail(i, editFav){
       <div class="parts">${parts.join("")}</div>`:""}
 
       <h4 style="margin-top:22px">建議 SUGGESTION</h4>
-      <ul class="suggest">${suggestion(b).map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
+      <ul class="suggest">${suggestion(b).map(s=>`<li>${s}</li>`).join("")}</ul>
 
       ${b.source?`<div class="srcline">來源產品：<b>${esc(b.source)}</b></div>`:""}
     </div>
