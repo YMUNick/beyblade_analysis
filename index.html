@@ -194,6 +194,16 @@
   .combo-link{color:var(--accent);font-weight:700;text-decoration:none;
     border-bottom:1px dashed var(--accent);cursor:pointer;padding:0 1px}
   .combo-link:hover{color:var(--accent2);border-bottom-style:solid}
+  /* 圖片放大 */
+  .zoomable{cursor:zoom-in}
+  .lightbox{display:none;position:fixed;inset:0;z-index:60;padding:34px;
+    background:rgba(2,3,6,.9);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    cursor:zoom-out;place-items:center}
+  .lightbox.show{display:grid;animation:fade .18s ease}
+  .lightbox img{max-width:92vw;max-height:86vh;object-fit:contain;
+    background:#05060a;border:1px solid var(--line2);border-radius:10px;
+    box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  .lightbox .modal-close{top:18px;right:18px}
   .card{background:linear-gradient(165deg,var(--panel2),var(--panel));
     border:1px solid var(--line);clip-path:var(--clip);overflow:hidden;box-shadow:var(--shadow)}
   .card-hero{position:relative;display:flex;gap:18px;padding:22px 20px;
@@ -386,6 +396,12 @@
   <!-- detail -->
   <div class="detail" id="detail"></div>
 
+  <!-- 圖片放大 lightbox -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="modal-close" onclick="closeZoom()" aria-label="關閉">✕</button>
+    <img id="lightboxImg" alt="">
+  </div>
+
   <div class="foot">
     以天梯資料比對 · 資料源
     <a href="https://stan-yao.github.io/beyblade_x_tier/" target="_blank" rel="noopener">@stan_yao</a>
@@ -454,7 +470,9 @@ const searchEl=document.getElementById("search"),
   partsViewEl=document.getElementById("partsView"),
   partKindEl=document.getElementById("partKind"),
   partsInfoEl=document.getElementById("partsInfo"),
-  partsBodyEl=document.getElementById("partsBody");
+  partsBodyEl=document.getElementById("partsBody"),
+  lightboxEl=document.getElementById("lightbox"),
+  lightboxImg=document.getElementById("lightboxImg");
 
 let activeType="all";
 let currentBladeIdx=null;
@@ -595,7 +613,7 @@ function showDetail(i, editFav){
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPart('${kind}','${esc(name)}')}">
       <div class="pk">${label}</div>
       <div class="pbody">
-        <div class="pthumb">${img?`<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">`:"—"}</div>
+        <div class="pthumb${img?" zoomable":""}"${img?` onclick="event.stopPropagation();zoomImg('${esc(img)}','${esc(name)}')"`:""}>${img?`<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">`:"—"}</div>
         <div class="pv">${esc(name)}${tier?`<span class="pt" style="color:${partTierColor(tier)}">${esc(tier)}</span>`:""}</div>
       </div>
       <div class="plink">看配件天梯 →</div>
@@ -698,9 +716,27 @@ function closeDetail(){
   currentBladeIdx=null; editingFavId=null; userPhotoSrc=null;
 }
 
-// 點背景關閉 + ESC 關閉
+// 點背景關閉 + ESC 關閉（若圖片放大中，ESC 先關放大）
 detailEl.addEventListener("click",e=>{ if(e.target===detailEl) closeDetail(); });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape" && detailEl.classList.contains("show")) closeDetail(); });
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  if(lightboxEl.classList.contains("show")) return;   // 交給 lightbox 的處理
+  if(detailEl.classList.contains("show")) closeDetail();
+});
+
+/* ── 圖片放大 lightbox ── */
+function zoomImg(src, alt){
+  if(!src) return;
+  lightboxImg.src=src; lightboxImg.alt=alt||"";
+  lightboxEl.classList.add("show");
+  document.body.classList.add("modal-open");
+}
+function closeZoom(){
+  lightboxEl.classList.remove("show"); lightboxImg.src="";
+  if(!detailEl.classList.contains("show")) document.body.classList.remove("modal-open");
+}
+lightboxEl.addEventListener("click",e=>{ if(e.target!==lightboxImg) closeZoom(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && lightboxEl.classList.contains("show")) closeZoom(); });
 
 /* ── 照片（個人紀錄，純本機顯示） ── */
 function bindPhoto(){
@@ -919,7 +955,7 @@ function renderParts(){
         return `<div class="pc" data-part="${esc(o.name)}">
           <div class="pc-head">
             <span class="pc-title-wrap">
-              <span class="pc-thumb">${img?`<img src="${esc(img)}" alt="${esc(o.name)}" loading="lazy">`:""}</span>
+              <span class="pc-thumb${img?" zoomable":""}"${img?` onclick="zoomImg('${esc(img)}','${esc(o.name)}')"`:""}>${img?`<img src="${esc(img)}" alt="${esc(o.name)}" loading="lazy">`:""}</span>
               <span class="pc-name">${esc(o.name)}</span>
             </span>
             <span class="tierpill" style="color:${tierColor(o.tier)}">${tierLabel(o.tier)}</span>
