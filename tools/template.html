@@ -145,10 +145,65 @@
   .empty{margin-top:24px;text-align:center;color:var(--dim);font-size:.9rem;line-height:1.8;
     padding:30px 20px;border:1px dashed var(--line2);clip-path:var(--clip)}
 
-  /* ── detail card ── */
-  .detail{display:none;margin-top:24px;animation:rise .5s ease both}
-  .detail.show{display:block}
+  /* ── 配件天梯（固鎖 / 軸心） ── */
+  .pgroup{margin-top:22px}
+  .pg-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    padding:8px 12px;border-left:4px solid var(--gc);
+    background:linear-gradient(100deg,color-mix(in srgb,var(--gc) 14%,transparent),transparent 70%)}
+  .pg-title{font-family:"Orbitron";font-weight:800;font-size:.9rem;letter-spacing:.06em;color:var(--gc)}
+  .pg-desc{font-size:.72rem;color:var(--muted);line-height:1.4}
+  .pg-buy{--gc:var(--sta)} .pg-maybe{--gc:var(--tS)} .pg-avoid{--gc:var(--atk)}
+  .pc{padding:13px 14px;background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+  .pc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .pc-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+  .pc-thumb{flex:0 0 auto;width:46px;height:46px;border-radius:8px;overflow:hidden;
+    background:#05060a;display:grid;place-items:center}
+  .pc-thumb img{width:100%;height:100%;object-fit:contain}
+  .pc-name{font-family:"Orbitron";font-weight:800;font-size:1.05rem;letter-spacing:.04em;color:var(--text)}
+  .pc.flash{animation:pcflash 1.6s ease}
+  @keyframes pcflash{0%,100%{border-color:var(--line);box-shadow:none}
+    18%{border-color:var(--accent);box-shadow:0 0 0 2px rgba(18,239,206,.35),0 8px 26px rgba(18,239,206,.25)}}
+  .pc-hint{font-size:.74rem;color:var(--accent);margin-top:7px;line-height:1.4}
+  .pc-note{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.55}
+  .pc-count{font-family:"Orbitron";font-size:.54rem;letter-spacing:.1em;color:var(--dim);margin-top:8px}
+
+  /* ── detail modal（彈出視窗） ── */
+  .detail{display:none;position:fixed;inset:0;z-index:50;
+    background:rgba(3,4,8,.74);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    padding:26px 16px;overflow-y:auto;animation:fade .22s ease both}
+  .detail.show{display:flex;align-items:flex-start;justify-content:center}
+  body.modal-open{overflow:hidden}
+  .modal-box{position:relative;width:100%;max-width:720px;margin:auto;
+    animation:rise .32s ease both}
+  .modal-close{position:absolute;top:-8px;right:-8px;z-index:3;
+    width:42px;height:42px;display:grid;place-items:center;cursor:pointer;
+    font-family:"Orbitron";font-size:1.05rem;color:var(--text);line-height:1;
+    background:var(--panel2);border:1px solid var(--line2);border-radius:50%;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);transition:.15s}
+  .modal-close:hover{color:var(--atk);border-color:var(--atk);transform:rotate(90deg)}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
   @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+  /* 建議清單 */
+  .suggest{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .suggest li{position:relative;padding:12px 15px 12px 34px;font-size:.9rem;line-height:1.65;
+    color:#dbe4ec;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+  .suggest li::before{content:"▸";position:absolute;left:14px;top:12px;color:var(--accent);
+    font-weight:900}
+  .combo-link{color:var(--accent);font-weight:700;text-decoration:none;
+    border-bottom:1px dashed var(--accent);cursor:pointer;padding:0 1px}
+  .combo-link:hover{color:var(--accent2);border-bottom-style:solid}
+  /* 圖片放大 */
+  .zoomable{cursor:zoom-in}
+  .lightbox{display:none;position:fixed;inset:0;z-index:60;padding:34px;
+    background:rgba(2,3,6,.9);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    cursor:zoom-out;place-items:center}
+  .lightbox.show{display:grid;animation:fade .18s ease}
+  .lightbox img{max-width:92vw;max-height:86vh;object-fit:contain;
+    background:#05060a;border:1px solid var(--line2);border-radius:10px;
+    box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  .lightbox .modal-close{top:18px;right:18px}
   .card{background:linear-gradient(165deg,var(--panel2),var(--panel));
     border:1px solid var(--line);clip-path:var(--clip);overflow:hidden;box-shadow:var(--shadow)}
   .card-hero{position:relative;display:flex;gap:18px;padding:22px 20px;
@@ -187,10 +242,18 @@
   .parts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
   @media(max-width:520px){.parts{grid-template-columns:1fr}}
   .partcard{border:1px solid var(--line);background:rgba(255,255,255,.02);padding:13px 15px}
+  .partcard.link{cursor:pointer;transition:border-color .18s,transform .12s}
+  .partcard.link:hover{border-color:var(--accent);transform:translateY(-2px)}
   .partcard .pk{font-family:"Orbitron";font-size:.56rem;letter-spacing:.12em;color:var(--dim)}
-  .partcard .pv{font-weight:700;font-size:1rem;margin-top:6px;display:flex;align-items:center;gap:9px}
+  .partcard .pbody{display:flex;align-items:center;gap:12px;margin-top:8px}
+  .partcard .pthumb{flex:0 0 auto;width:56px;height:56px;border-radius:8px;overflow:hidden;
+    background:#05060a;display:grid;place-items:center;color:var(--dim)}
+  .partcard .pthumb img{width:100%;height:100%;object-fit:contain}
+  .partcard .pv{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:9px}
   .partcard .pv .pt{font-family:"Orbitron";font-size:.62rem;font-weight:900;
     padding:2px 8px;border:1.5px solid currentColor}
+  .partcard .plink{font-family:"Orbitron";font-size:.54rem;letter-spacing:.1em;
+    color:var(--accent);margin-top:10px;opacity:.85}
   .combo{display:flex;align-items:center;gap:12px;padding:13px 15px;
     border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:.9rem;line-height:1.5}
   .combo .cn{font-family:"Orbitron";font-size:.7rem;color:var(--accent);flex:0 0 auto;
@@ -265,6 +328,9 @@
     .block,.photo-sec{padding:16px}
     .parts{grid-template-columns:1fr}
     .fc .fc-img img{max-height:240px}
+    /* 彈窗手機版：貼齊邊、關閉鈕移入卡內 */
+    .detail{padding:14px 10px}
+    .modal-close{top:6px;right:6px;width:38px;height:38px}
   }
   /* 小型手機 */
   @media(max-width:380px){
@@ -293,6 +359,7 @@
   <!-- tabs -->
   <div class="tabs">
     <button class="tab on" id="tabSearch" data-view="search">🔍 天梯查詢</button>
+    <button class="tab" id="tabParts" data-view="parts">🔩 配件天梯</button>
     <button class="tab" id="tabFavs" data-view="favs">♥ 我的最愛 <span id="favCount">(0)</span></button>
   </div>
 
@@ -312,6 +379,13 @@
     <div class="empty" id="empty" style="display:none"></div>
   </div>
 
+  <!-- parts (ratchet / bit) view -->
+  <div id="partsView" style="display:none">
+    <div class="filters" id="partKind"></div>
+    <div class="count" id="partsInfo"></div>
+    <div id="partsBody"></div>
+  </div>
+
   <!-- favorites view -->
   <div id="favView" style="display:none">
     <div class="count" id="favInfo"></div>
@@ -321,6 +395,12 @@
 
   <!-- detail -->
   <div class="detail" id="detail"></div>
+
+  <!-- 圖片放大 lightbox -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="modal-close" onclick="closeZoom()" aria-label="關閉">✕</button>
+    <img id="lightboxImg" alt="">
+  </div>
 
   <div class="foot">
     以天梯資料比對 · 資料源
@@ -337,6 +417,10 @@
 /* ── 天梯資料快照（來源：@stan_yao Google Sheet） ── */
 const BLADES = __BLADES_JSON__;
 const SNAPSHOT_DATE = "__SNAPSHOT_DATE__";
+
+/* ── 零件圖鑑快照（固鎖／軸心圖片，來源：@stan_yao「零件圖鑑」表） ── */
+const PART_IMG = {"A":"https://i.ibb.co/whVKW0jk/image.png","B":"https://i.ibb.co/FLJV50vt/image.png","BS":"https://i.ibb.co/My0CyzMx/image.png","C":"https://i.ibb.co/7MMs9M8/image.png","D":"https://i.ibb.co/RT5Y6ybK/image.png","DB":"https://i.ibb.co/N2TkWtVC/image.png","DS":"https://i.ibb.co/R49tQDP1/transparent-Photoroom.webp","E":"https://i.ibb.co/99F0WKXz/image.png","F":"https://i.ibb.co/XkjMYDT2/image.png","FB":"https://i.ibb.co/chH2XCwY/image.png","FF":"https://i.ibb.co/TMHNgxzD/image.png","G":"https://i.ibb.co/DHgsczzb/image.png","GB":"https://i.ibb.co/R4yRQ37h/image.png","GF":"https://i.ibb.co/zhtpg8LQ/image.png","GN":"https://i.ibb.co/sp9YVLCT/image.png","GP":"https://i.ibb.co/27VMsF0K/image.png","GR":"https://i.ibb.co/pvTrmRw5/image.png","GU":"https://i.ibb.co/4Zrm0Ps2/image.png","H":"https://i.ibb.co/dsZ3j2vb/image.png","HN":"https://i.ibb.co/GfRfgqST/image.png","HT":"https://i.ibb.co/wNVzQz0W/image.png","I":"https://i.ibb.co/39Rhfs8S/image.png","J":"https://i.ibb.co/1td58rw8/image.png","K":"https://i.ibb.co/rKbsMYbQ/image.png","L":"https://i.ibb.co/zWn2KC2Y/image.png","LF":"https://i.ibb.co/FkP5rfMT/image.png","LO":"https://i.ibb.co/zh4w0gfX/image.png","LR":"https://i.ibb.co/ynHdLrQp/image.png","M":"https://i.ibb.co/whBf23Dr/image.png","MN":"https://i.ibb.co/0RtG77Pb/image.png","N":"https://i.ibb.co/8gBYj1Cs/image.png","NR":"https://i.ibb.co/k64nLpVS/image.png","O":"https://i.ibb.co/LKbYfYC/image.png","OP":"https://i.ibb.co/9kyDzPDT/image.png","P":"https://i.ibb.co/PZmdzD7F/image.png","Q":"https://i.ibb.co/SkrXJRW/image.png","R":"https://i.ibb.co/GvcvDHKd/image.png","RA":"https://i.ibb.co/21X4KH6g/image.png","S":"https://i.ibb.co/sd2kh4nB/image.png","T":"https://i.ibb.co/nJrf33Q/image.png","TK":"https://i.ibb.co/B24VKkCW/image.png","TP":"https://i.ibb.co/nv8p7N7/image.png","Tr":"https://i.ibb.co/HfPWLN5F/image.png","U":"https://i.ibb.co/Hpn2S328/image.png","UF":"https://i.ibb.co/5362q9f/image.png","UN":"https://i.ibb.co/35tFBwrj/image.png","V":"https://i.ibb.co/VWGzwX4M/image.png","W":"https://i.ibb.co/TxrGRHyg/image.png","WB":"https://i.ibb.co/Gh28ZkG/image.png","WW":"https://i.ibb.co/4gT9jxwy/image.png","Y":"https://i.ibb.co/7ttT33dM/image.png","Z":"https://i.ibb.co/v44dgJNt/image.png","0-60":"https://i.ibb.co/GfLzqL8m/image.png","0-70":"https://i.ibb.co/fGD8Gzt9/image.png","0-80":"https://i.ibb.co/r2R3h4yZ/image.png","1-50":"https://i.ibb.co/1GnP2v19/image.png","1-60":"https://i.ibb.co/b5BZ100g/image.png","1-70":"https://i.ibb.co/GfP44GjM/image.png","1-80":"https://i.ibb.co/NnVNrgxF/image.png","2-60":"https://i.ibb.co/YB5W4qBP/image.png","2-70":"https://i.ibb.co/cfw8Yb0/image.png","2-80":"https://i.ibb.co/VYMkP3hf/image.png","3-60":"https://i.ibb.co/XrmpwfHS/image.png","3-70":"https://i.ibb.co/yxqkN9H/image.png","3-80":"https://i.ibb.co/5XyXBV5x/image.png","3-85":"https://i.ibb.co/TzCzn5k/image.png","4-50":"https://i.ibb.co/JFk69mn4/image.png","4-55":"https://i.ibb.co/21rPdQNS/image.png","4-60":"https://i.ibb.co/fYLj14tR/image.png","4-70":"https://i.ibb.co/4Z7mh6SC/image.png","4-80":"https://i.ibb.co/w5hpd2h/image.png","5-60":"https://i.ibb.co/HT75BPhg/image.png","5-70":"https://i.ibb.co/6JtX8LR6/image.png","5-80":"https://i.ibb.co/jZRMF9R6/image.png","6-60":"https://i.ibb.co/YTktm00h/image.png","6-70":"https://i.ibb.co/Mx8MS8wK/image.png","6-80":"https://i.ibb.co/VYPrMzh6/image.png","7-55":"https://i.ibb.co/WWZVbp4j/image.png","7-60":"https://i.ibb.co/G3xxvF6G/image.png","7-70":"https://i.ibb.co/8D1kNsHC/image.png","7-80":"https://i.ibb.co/MKt1LBG/image.png","8-70":"https://i.ibb.co/hxqxXFJ7/image.png","9-60":"https://i.ibb.co/r2ngh5yJ/9-60.png","9-65":"https://i.ibb.co/hxS9wsj2/image.png","9-70":"https://i.ibb.co/mdLcq5N/image.png","9-80":"https://i.ibb.co/V04XnrDn/image.png","M-85":"https://i.ibb.co/q3Lssnrb/image.png"};
+function partImg(name){ return PART_IMG[name] || ""; }
 
 /* ── 對照表 ── */
 const TYPE = {
@@ -381,7 +465,14 @@ const searchEl=document.getElementById("search"),
   favInfoEl=document.getElementById("favInfo"),
   favCountEl=document.getElementById("favCount"),
   tabSearch=document.getElementById("tabSearch"),
-  tabFavs=document.getElementById("tabFavs");
+  tabParts=document.getElementById("tabParts"),
+  tabFavs=document.getElementById("tabFavs"),
+  partsViewEl=document.getElementById("partsView"),
+  partKindEl=document.getElementById("partKind"),
+  partsInfoEl=document.getElementById("partsInfo"),
+  partsBodyEl=document.getElementById("partsBody"),
+  lightboxEl=document.getElementById("lightbox"),
+  lightboxImg=document.getElementById("lightboxImg");
 
 let activeType="all";
 let currentBladeIdx=null;
@@ -447,14 +538,66 @@ function render(){
 }
 
 /* ── 詳細卡 ── */
-function verdict(b){
-  const ti=typeInfo(b.type), tl=tierLabel(b.tier);
-  let s=`${ti.zh}型戰刃，天梯定位 ${tl}。${ti.trait}。`;
+// 一句話總評等級
+function ratingWord(b){
   const r=tierRank(b.tier);
-  if(r>=11) s+="屬強勢牌位，實戰表現受肯定。";
-  else if(r>=7) s+="中段班，穩定可用。";
-  else if(b.tier==="-"||r<0) s+="目前天梯未列，資料僅供參考。";
+  if(b.tier==="X") return "頂尖強勢";
+  if(r>=13) return "強勢主力";      // S+ / S
+  if(r>=11) return "中上可用";      // A+ / A
+  if(r>=9)  return "中段穩健";      // B+ / B
+  if(r>=7)  return "堪用入門";      // C+ / C
+  if(r>=3)  return "偏弱後段";      // D+ ~ E
+  return "天梯未列";
+}
+
+// 評價（明確寫出）
+function verdict(b){
+  const ti=typeInfo(b.type), tl=tierLabel(b.tier), rw=ratingWord(b), r=tierRank(b.tier);
+  let s=`【${rw}】${ti.zh}型戰刃，天梯定位 ${tl}。${ti.trait}。`;
+  if(b.tier==="X")      s+="目前天梯最高牌位，實戰統治力極強。";
+  else if(r>=13)        s+="第一線強勢牌位，競技場常客，非常值得投入。";
+  else if(r>=11)        s+="中上牌位，配置得當即具競爭力。";
+  else if(r>=9)         s+="中段班，穩定可用，適合練習與休閒對戰。";
+  else if(r>=7)         s+="偏入門牌位，適合新手熟悉手感。";
+  else if(r>=3)         s+="天梯較後段，實戰略吃虧，建議改裝補強。";
+  else                  s+="目前天梯未收錄，定位僅供參考。";
+  // 原裝高階零件加分
+  const hi=[];
+  if(b.ratchet && b.ratchetTier && tierRank(b.ratchetTier)>=13) hi.push(`固鎖 ${b.ratchet}（${b.ratchetTier}）`);
+  if(b.bit && b.bitTier && tierRank(b.bitTier)>=13) hi.push(`軸心 ${b.bit}（${b.bitTier}）`);
+  if(hi.length) s+=`原裝${hi.join("、")}為高階零件，可直接沿用。`;
   return s;
+}
+
+// 依名稱判斷零件種類（有「字-數字」者為固鎖，其餘為軸心）
+function partKindOf(name){ return /^[0-9A-Za-z]+-\d+$/.test(name) ? "ratchet" : "bit"; }
+// 把配置字串裡出現的固鎖／軸心名稱轉成可點的連結（會跳到配件天梯）
+function linkifyCombo(str){
+  return String(str).split(/([\s,，/｜|：:])/).map(tok=>{
+    if(tok==="\n"||tok==="\r") return "<br>";
+    if(tok && Object.prototype.hasOwnProperty.call(PART_IMG,tok)){
+      const k=partKindOf(tok);
+      return `<a class="combo-link" href="javascript:void 0" onclick="gotoPart('${k}','${esc(tok)}');return false">${esc(tok)}</a>`;
+    }
+    return esc(tok);
+  }).join("");
+}
+
+// 建議（明確條列，回傳已處理好的安全 HTML）
+function suggestion(b){
+  const out=[], r=tierRank(b.tier);
+  if(b.combo) out.push(`熱門配置：${linkifyCombo(b.combo)}`);   // 內含零件連結
+  if(b.tier==="X"||r>=13)      out.push(esc("可作為主力直接參賽，優先投資與練習。"));
+  else if(r>=11)              out.push(esc("值得培養，搭配高階固鎖／軸心可再上一階。"));
+  else if(r>=9)              out.push(esc("適合日常對戰與練手，競技場前建議微調配件。"));
+  else if(r>=7)              out.push(esc("適合作為練習或收藏，競技建議改裝補強。"));
+  else if(r>0)              out.push(esc("實戰偏弱，建議拆件與其他強刃混搭使用。"));
+  else                     out.push(esc("天梯未列，可自行測試手感再決定是否投入。"));
+  const lowR=b.ratchet && b.ratchetTier && tierRank(b.ratchetTier)>0 && tierRank(b.ratchetTier)<9;
+  const lowB=b.bit && b.bitTier && tierRank(b.bitTier)>0 && tierRank(b.bitTier)<9;
+  if(lowR) out.push(esc(`原裝固鎖 ${b.ratchet}（${b.ratchetTier}）階級偏低，可換更高階固鎖提升表現。`));
+  if(lowB) out.push(esc(`原裝軸心 ${b.bit}（${b.bitTier}）階級偏低，可依打法更換軸心。`));
+  return out;
 }
 
 function showDetail(i, editFav){
@@ -463,12 +606,25 @@ function showDetail(i, editFav){
   editingFavId = editFav ? editFav.id : null;
   const ti=typeInfo(b.type), tc=tierColor(b.tier);
   const parts=[];
-  if(b.ratchet) parts.push(`<div class="partcard"><div class="pk">原裝固鎖 RATCHET</div>
-    <div class="pv">${esc(b.ratchet)}${b.ratchetTier?`<span class="pt" style="color:${partTierColor(b.ratchetTier)}">${esc(b.ratchetTier)}</span>`:""}</div></div>`);
-  if(b.bit) parts.push(`<div class="partcard"><div class="pk">原裝軸心 BIT</div>
-    <div class="pv">${esc(b.bit)}${b.bitTier?`<span class="pt" style="color:${partTierColor(b.bitTier)}">${esc(b.bitTier)}</span>`:""}</div></div>`);
+  const partCard=(kind,label,name,tier)=>{
+    const img=partImg(name);
+    return `<div class="partcard link" role="button" tabindex="0"
+      onclick="gotoPart('${kind}','${esc(name)}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gotoPart('${kind}','${esc(name)}')}">
+      <div class="pk">${label}</div>
+      <div class="pbody">
+        <div class="pthumb${img?" zoomable":""}"${img?` onclick="event.stopPropagation();zoomImg('${esc(img)}','${esc(name)}')"`:""}>${img?`<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">`:"—"}</div>
+        <div class="pv">${esc(name)}${tier?`<span class="pt" style="color:${partTierColor(tier)}">${esc(tier)}</span>`:""}</div>
+      </div>
+      <div class="plink">看配件天梯 →</div>
+    </div>`;
+  };
+  if(b.ratchet) parts.push(partCard("ratchet","原裝固鎖 RATCHET",b.ratchet,b.ratchetTier));
+  if(b.bit) parts.push(partCard("bit","原裝軸心 BIT",b.bit,b.bitTier));
 
   detailEl.innerHTML=`
+  <div class="modal-box">
+  <button class="modal-close" onclick="closeDetail()" aria-label="關閉">✕</button>
   <div class="card">
     <div class="card-hero">
       <div class="scan-tag">TIER MATCH</div>
@@ -487,14 +643,14 @@ function showDetail(i, editFav){
     </div>
 
     <div class="block">
-      <h4>天梯定位 VERDICT</h4>
+      <h4>評價 EVALUATION</h4>
       <div class="verdict">${esc(verdict(b))}</div>
 
       ${parts.length?`<h4 style="margin-top:22px">原裝配件 PARTS</h4>
       <div class="parts">${parts.join("")}</div>`:""}
 
-      ${b.combo?`<h4 style="margin-top:22px">建議配置 COMBO</h4>
-      <div class="combo"><div class="cn">★</div><div>${esc(b.combo)}</div></div>`:""}
+      <h4 style="margin-top:22px">建議 SUGGESTION</h4>
+      <ul class="suggest">${suggestion(b).map(s=>`<li>${s}</li>`).join("")}</ul>
 
       ${b.source?`<div class="srcline">來源產品：<b>${esc(b.source)}</b></div>`:""}
     </div>
@@ -530,13 +686,16 @@ function showDetail(i, editFav){
         ${editingFavId?"儲存變更":"♥ 加入我的最愛"}</button>
       <div class="fav-msg" id="favMsg"></div>
     </div>
-  </div>
 
-  <div class="again">
-    <button class="btn ghost" onclick="closeDetail()">← 返回清單</button>
+    <div class="again">
+      <button class="btn ghost" onclick="closeDetail()">關閉視窗</button>
+    </div>
+  </div>
   </div>`;
 
   detailEl.classList.add("show");
+  document.body.classList.add("modal-open");
+  detailEl.scrollTop=0;
   bindPhoto();
   bindFavSave();
   if(editFav){                       // 編輯模式：預填暱稱 / 備註 / 照片
@@ -549,15 +708,35 @@ function showDetail(i, editFav){
       ui.src=editFav.photo; dp.style.display="none"; up.classList.add("show");
     }
   }
-  detailEl.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function closeDetail(){
   detailEl.classList.remove("show"); detailEl.innerHTML="";
+  document.body.classList.remove("modal-open");
   currentBladeIdx=null; editingFavId=null; userPhotoSrc=null;
-  (activeView==="favs"?tabFavs:document.querySelector(".tabs"))
-    .scrollIntoView({behavior:"smooth",block:"start"});
 }
+
+// 點背景關閉 + ESC 關閉（若圖片放大中，ESC 先關放大）
+detailEl.addEventListener("click",e=>{ if(e.target===detailEl) closeDetail(); });
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  if(lightboxEl.classList.contains("show")) return;   // 交給 lightbox 的處理
+  if(detailEl.classList.contains("show")) closeDetail();
+});
+
+/* ── 圖片放大 lightbox ── */
+function zoomImg(src, alt){
+  if(!src) return;
+  lightboxImg.src=src; lightboxImg.alt=alt||"";
+  lightboxEl.classList.add("show");
+  document.body.classList.add("modal-open");
+}
+function closeZoom(){
+  lightboxEl.classList.remove("show"); lightboxImg.src="";
+  if(!detailEl.classList.contains("show")) document.body.classList.remove("modal-open");
+}
+lightboxEl.addEventListener("click",e=>{ if(e.target!==lightboxImg) closeZoom(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && lightboxEl.classList.contains("show")) closeZoom(); });
 
 /* ── 照片（個人紀錄，純本機顯示） ── */
 function bindPhoto(){
@@ -690,18 +869,136 @@ function favAction(act,id){
   showDetail(idx, act==="edit" ? f : undefined);
 }
 
+/* ── 配件天梯（固鎖 / 軸心） ── */
+let activePartKind="ratchet";
+
+// 把所有戰刃用到的固鎖／軸心彙整成一份清單（同名取最高階級，並統計採用數）
+function buildParts(kind){
+  const map=new Map();
+  BLADES.forEach(b=>{
+    const name=kind==="ratchet"?b.ratchet:b.bit;
+    const tier=kind==="ratchet"?b.ratchetTier:b.bitTier;
+    if(!name) return;
+    if(!map.has(name)) map.set(name,{name,tier,count:0});
+    const o=map.get(name);
+    o.count++;
+    if(tierRank(tier)>tierRank(o.tier)) o.tier=tier;
+  });
+  return [...map.values()];
+}
+
+// 依階級分成三個推薦等級（比照參考站：推薦購買 / 視情況 / 不推薦）
+function partBucket(tier){
+  const r=tierRank(tier);
+  if(r>=11) return "buy";     // A 以上
+  if(r>=7)  return "maybe";   // C ～ B+
+  if(r>0)   return "avoid";   // E ～ D+
+  return "none";              // 未列
+}
+const PART_BUCKETS=[
+  ["buy","推薦購買","體質頂尖，值得優先購入或直接沿用"],
+  ["maybe","視情況","中段實用，依打法與對手選用"],
+  ["avoid","不推薦","體質偏弱，競技建議更換為高階配件"],
+];
+
+// 固鎖：由高度推斷取向（依命名規則，末段數字＝高度）
+function ratchetHint(name){
+  const m=/-(\d+)\b/.exec(name);
+  if(!m) return "";
+  const h=+m[1];
+  if(h<=55) return `高度 ${h}｜極低重心，貼地攻擊取向`;
+  if(h<=60) return `高度 ${h}｜低重心，攻擊／泛用主流`;
+  if(h<=70) return `高度 ${h}｜中重心，泛用平衡`;
+  if(h<=80) return `高度 ${h}｜中高重心，持久／上部攻擊`;
+  return `高度 ${h}｜高重心，持久／防上飛`;
+}
+// 軸心：常見款式的取向（僅列出明確可辨識者）
+const BIT_HINT={
+  F:"Flat｜攻擊，強力橫移", LF:"Low Flat｜攻擊，低重心激移",
+  GF:"Gear Flat｜攻擊，齒輪回充移動", N:"Needle｜持久，定點自轉",
+  HN:"High Needle｜持久，高定點", MN:"Metal Needle｜持久，金屬定點",
+  GN:"Gear Needle｜持久／防禦，齒輪回充", B:"Ball｜防禦，抗攻晃動",
+  GB:"Gear Ball｜防禦，齒輪回充抗攻", O:"Orb｜防禦，圓弧接地",
+  P:"Point｜持久／防禦，小點定位", GP:"Gear Point｜防禦，齒輪回充",
+  T:"Taper｜平衡，泛用", HT:"High Taper｜平衡，高泛用", D:"Dot｜持久，極小接點",
+};
+
+function partNote(bucket,isR){
+  const t=isR?"固鎖":"軸心";
+  if(bucket==="buy")   return `頂尖${t}，${isR?"重心與鎖合表現優異":"性能全面均衡"}，建議優先購入並可長期沿用。`;
+  if(bucket==="maybe") return `中段${t}，特定打法或對局下仍有發揮空間，可視情況選用。`;
+  return `體質偏弱的${t}，競技環境較吃虧，建議更換為推薦等級的${t}。`;
+}
+
+function renderParts(){
+  partKindEl.innerHTML=[["ratchet","固鎖 RATCHET"],["bit","軸心 BIT"]].map(k=>
+    `<div class="chip${k[0]===activePartKind?" on":""}" data-k="${k[0]}">${k[1]}</div>`).join("");
+  partKindEl.querySelectorAll(".chip").forEach(ch=>ch.addEventListener("click",()=>{
+    activePartKind=ch.dataset.k; renderParts();
+  }));
+
+  const isR=activePartKind==="ratchet";
+  const items=buildParts(activePartKind)
+    .filter(o=>partBucket(o.tier)!=="none")
+    .sort((a,b)=>tierRank(b.tier)-tierRank(a.tier)||b.count-a.count);
+
+  partsInfoEl.textContent=`${isR?"固鎖":"軸心"} · 共 ${items.length} 種 · 依天梯排序`;
+
+  partsBodyEl.innerHTML=PART_BUCKETS.map(([key,label,desc])=>{
+    const group=items.filter(o=>partBucket(o.tier)===key);
+    if(!group.length) return "";
+    return `<div class="pgroup pg-${key}">
+      <div class="pg-head"><span class="pg-title">${label}（${group.length}）</span><span class="pg-desc">${desc}</span></div>
+      <div class="results">${group.map(o=>{
+        const hint=isR?ratchetHint(o.name):(BIT_HINT[o.name]||"");
+        const img=partImg(o.name);
+        return `<div class="pc" data-part="${esc(o.name)}">
+          <div class="pc-head">
+            <span class="pc-title-wrap">
+              <span class="pc-thumb${img?" zoomable":""}"${img?` onclick="zoomImg('${esc(img)}','${esc(o.name)}')"`:""}>${img?`<img src="${esc(img)}" alt="${esc(o.name)}" loading="lazy">`:""}</span>
+              <span class="pc-name">${esc(o.name)}</span>
+            </span>
+            <span class="tierpill" style="color:${tierColor(o.tier)}">${tierLabel(o.tier)}</span>
+          </div>
+          ${hint?`<div class="pc-hint">${esc(hint)}</div>`:""}
+          <div class="pc-note">${esc(partNote(key,isR))}</div>
+          <div class="pc-count">${o.count} 款戰刃採用</div>
+        </div>`;
+      }).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+// 從陀螺詳情點零件 → 跳到配件天梯並定位／閃爍該零件
+function gotoPart(kind,name){
+  closeDetail();
+  activePartKind = kind==="bit" ? "bit" : "ratchet";
+  switchView("parts");
+  requestAnimationFrame(()=>{
+    const card=[...partsBodyEl.querySelectorAll(".pc")].find(c=>c.dataset.part===name);
+    if(card){
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      card.classList.add("flash");
+      setTimeout(()=>card.classList.remove("flash"),1600);
+    }
+  });
+}
+
 /* ── 分頁切換 ── */
 function switchView(v, keepDetail){
   activeView=v;
-  const isFavs=v==="favs";
-  searchViewEl.style.display=isFavs?"none":"block";
-  favViewEl.style.display=isFavs?"block":"none";
-  tabSearch.classList.toggle("on",!isFavs);
-  tabFavs.classList.toggle("on",isFavs);
-  if(!keepDetail){ detailEl.classList.remove("show"); detailEl.innerHTML=""; editingFavId=null; }
-  if(isFavs) renderFavs();
+  searchViewEl.style.display=v==="search"?"block":"none";
+  partsViewEl.style.display=v==="parts"?"block":"none";
+  favViewEl.style.display=v==="favs"?"block":"none";
+  tabSearch.classList.toggle("on",v==="search");
+  tabParts.classList.toggle("on",v==="parts");
+  tabFavs.classList.toggle("on",v==="favs");
+  if(!keepDetail){ detailEl.classList.remove("show"); detailEl.innerHTML=""; document.body.classList.remove("modal-open"); editingFavId=null; }
+  if(v==="favs") renderFavs();
+  if(v==="parts") renderParts();
 }
 tabSearch.addEventListener("click",()=>switchView("search"));
+tabParts.addEventListener("click",()=>switchView("parts"));
 tabFavs.addEventListener("click",()=>switchView("favs"));
 
 /* ── init ── */
