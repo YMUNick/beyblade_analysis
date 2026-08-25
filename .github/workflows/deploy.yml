@@ -37,6 +37,8 @@ jobs:
         if: github.event_name != 'push'
         run: |
           curl -sL "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv" -o tools/sheet_raw.csv
+          # 固鎖／軸心階級在「零件圖鑑」分頁（gid=1809991430；中文分頁名匿名抓不到，須用 gid）
+          curl -sL "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv&gid=1809991430" -o tools/parts_raw.csv
           cd tools
           node build_data.js
           SNAPSHOT_DATE=$(date -u +%F) node build_index.js

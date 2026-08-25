@@ -122,6 +122,33 @@
     color:var(--muted);transition:.15s}
   .fc .fc-actions button:hover{color:var(--text);border-color:var(--accent)}
   .fc .fc-actions button.del:hover{color:var(--atk);border-color:var(--atk)}
+  .fc .fc-actions button.on{color:#04121a;background:var(--accent);border-color:var(--accent);font-weight:700}
+
+  /* ── 我的最愛：就地展開編輯區 ── */
+  .fc.editing{border-color:var(--accent);box-shadow:0 0 0 1px rgba(18,239,206,.25)}
+  .fav-editor{grid-column:1/-1;
+    background:linear-gradient(165deg,var(--panel2),var(--panel));
+    border:1px solid var(--accent);border-top:3px solid var(--accent);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+    padding:18px;animation:fade .2s ease both}
+  .fe-rec{display:flex;gap:16px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:16px;
+    border-bottom:1px solid var(--line)}
+  .fe-pic{flex:0 0 auto;width:130px;height:130px;background:#05060a;border:1px solid var(--line2);
+    display:grid;place-items:center;overflow:hidden;
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+  .fe-pic.zoomable{cursor:zoom-in}
+  .fe-pic img{width:100%;height:100%;object-fit:contain}
+  .fe-recmeta{flex:1;min-width:200px}
+  .fe-recname{font-family:"Orbitron";font-weight:900;font-size:1.15rem;line-height:1.15}
+  .fe-recbadges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .fe-combo{font-size:.86rem;line-height:1.7;color:#dbe4ec;margin-top:12px}
+  .fe-combo-lb{font-family:"Orbitron";font-size:.56rem;letter-spacing:.12em;color:var(--accent);
+    display:block;margin-bottom:4px}
+  .fe-norec{font-size:.86rem;color:var(--muted);line-height:1.6;padding-bottom:14px;
+    margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .fe-actions{display:flex;gap:10px;margin-top:14px}
+  .fe-actions .btn{flex:1}
+  @media(max-width:600px){.fe-pic{width:100%;height:180px}}
 
   /* ── results grid ── */
   .results{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
@@ -194,6 +221,19 @@
   .combo-link{color:var(--accent);font-weight:700;text-decoration:none;
     border-bottom:1px dashed var(--accent);cursor:pointer;padding:0 1px}
   .combo-link:hover{color:var(--accent2);border-bottom-style:solid}
+  /* 熱門配置零件晶片（含縮圖，方便對照） */
+  .cchip{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin:3px 4px;
+    padding:3px 9px 3px 3px;border:1px solid var(--line2);border-radius:20px;
+    background:rgba(255,255,255,.03);transition:border-color .15s}
+  .cchip.zoomable{cursor:zoom-in}
+  .cchip:hover{border-color:var(--accent)}
+  .cchip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .cchip-thumb{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#05060a;
+    display:grid;place-items:center;flex:0 0 auto}
+  .cchip-thumb img{width:100%;height:100%;object-fit:contain}
+  .cchip-name{font-family:"Orbitron";font-weight:700;font-size:.82rem;letter-spacing:.02em;color:var(--text)}
+  .cchip-tier{font-family:"Orbitron";font-weight:900;font-size:.58rem;letter-spacing:.02em;
+    padding:1px 6px;border:1.5px solid currentColor;border-radius:9px}
   /* 圖片放大 */
   .zoomable{cursor:zoom-in}
   .lightbox{display:none;position:fixed;inset:0;z-index:60;padding:34px;
@@ -447,6 +487,13 @@ function tierColor(t){
 function tierLabel(t){ return (!t||t==="-") ? "未列" : t; }
 function partTierColor(t){ return tierColor(t); }
 
+// 零件名稱 → 階級（由戰刃原裝配件彙整，同名取最高階），供熱門配置晶片顯示階級用
+const PART_TIER = (()=>{ const m={};
+  BLADES.forEach(b=>{
+    if(b.ratchet && b.ratchetTier && tierRank(b.ratchetTier)>tierRank(m[b.ratchet]||"")) m[b.ratchet]=b.ratchetTier;
+    if(b.bit && b.bitTier && tierRank(b.bitTier)>tierRank(m[b.bit]||"")) m[b.bit]=b.bitTier;
+  }); return m; })();
+
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* ── DOM ── */
@@ -571,13 +618,20 @@ function verdict(b){
 
 // 依名稱判斷零件種類（有「字-數字」者為固鎖，其餘為軸心）
 function partKindOf(name){ return /^[0-9A-Za-z]+-\d+$/.test(name) ? "ratchet" : "bit"; }
-// 把配置字串裡出現的固鎖／軸心名稱轉成可點的連結（會跳到配件天梯）
+// 把配置字串裡的固鎖／軸心名稱轉成「縮圖＋名稱＋階級」晶片，點擊放大圖片以利對照
 function linkifyCombo(str){
   return String(str).split(/([\s,，/｜|：:])/).map(tok=>{
     if(tok==="\n"||tok==="\r") return "<br>";
     if(tok && Object.prototype.hasOwnProperty.call(PART_IMG,tok)){
-      const k=partKindOf(tok);
-      return `<a class="combo-link" href="javascript:void 0" onclick="gotoPart('${k}','${esc(tok)}');return false">${esc(tok)}</a>`;
+      const img=partImg(tok), tier=PART_TIER[tok]||"";
+      const act = img
+        ? `onclick="zoomImg('${esc(img)}','${esc(tok)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zoomImg('${esc(img)}','${esc(tok)}')}"`
+        : `onclick="gotoPart('${partKindOf(tok)}','${esc(tok)}')"`;
+      return `<span class="cchip${img?" zoomable":""}" role="button" tabindex="0" title="${esc(tok)}（點擊放大）" ${act}>`
+        + `<span class="cchip-thumb">${img?`<img src="${esc(img)}" alt="${esc(tok)}" loading="lazy">`:""}</span>`
+        + `<span class="cchip-name">${esc(tok)}</span>`
+        + (tier?`<span class="cchip-tier" style="color:${tierColor(tier)}">${esc(tier)}</span>`:"")
+        + `</span>`;
     }
     return esc(tok);
   }).join("");
@@ -753,8 +807,11 @@ function bindPhoto(){
   removePhoto.addEventListener("click",()=>{
     userphoto.classList.remove("show");drop.style.display="block";userimg.src="";userPhotoSrc=null;});
 }
-function loadPhoto(f,userimg,drop,userphoto){
+// setSrc：可選的儲存函式；未提供時寫入全域 userPhotoSrc（給詳情彈窗用）
+function loadPhoto(f,userimg,drop,userphoto,setSrc){
   if(!f.type.startsWith("image/")) return;
+  const apply=out=>{ if(setSrc)setSrc(out); else userPhotoSrc=out;
+    userimg.src=out; drop.style.display="none"; userphoto.classList.add("show"); };
   const r=new FileReader();
   r.onload=()=>{
     const img=new Image();
@@ -765,11 +822,9 @@ function loadPhoto(f,userimg,drop,userphoto){
       const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
       cv.getContext("2d").drawImage(img,0,0,w,h);
       let out; try{ out=cv.toDataURL("image/jpeg",0.82); }catch(e){ out=r.result; }
-      userPhotoSrc=out; userimg.src=out;
-      drop.style.display="none"; userphoto.classList.add("show");
+      apply(out);
     };
-    img.onerror=()=>{userPhotoSrc=r.result;userimg.src=r.result;
-      drop.style.display="none";userphoto.classList.add("show");};
+    img.onerror=()=>apply(r.result);
     img.src=r.result;
   };
   r.readAsDataURL(f);
@@ -818,22 +873,12 @@ function bindFavSave(){
   });
 }
 
-function renderFavs(){
-  const favs=loadFavs().slice().sort((a,b)=>b.ts-a.ts);
-  favInfoEl.textContent=favs.length+" 顆收藏 · 儲存在此裝置";
-  if(!favs.length){
-    favGridEl.innerHTML="";
-    favEmptyEl.style.display="block";
-    favEmptyEl.innerHTML="還沒有收藏。<br>到「天梯查詢」點一顆戰刃，填暱稱／照片後按 <b>♥ 加入我的最愛</b>。";
-    return;
-  }
-  favEmptyEl.style.display="none";
-  favGridEl.innerHTML=favs.map(f=>{
-    const ti=typeInfo(f.type), tc=tierColor(f.tier);
-    const pic=f.photo||f.img;
-    const d=new Date(f.ts);
-    const ds=d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
-    return `<div class="fc">
+function favCardHTML(f){
+  const ti=typeInfo(f.type), tc=tierColor(f.tier);
+  const pic=f.photo||f.img;
+  const d=new Date(f.ts);
+  const ds=d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
+  return `<div class="fc" data-fid="${f.id}">
       <div class="fc-img">${pic?`<img src="${esc(pic)}" alt="" loading="lazy">`:""}</div>
       <div class="fc-body">
         <div class="fc-nick">${esc(f.nick||f.bladeName)}</div>
@@ -850,10 +895,32 @@ function renderFavs(){
           <button class="del" data-act="del" data-id="${f.id}">刪除</button>
         </div>
       </div></div>`;
-  }).join("");
-  favGridEl.querySelectorAll("button[data-act]").forEach(btn=>{
-    btn.addEventListener("click",()=>favAction(btn.dataset.act, btn.dataset.id));
+}
+
+// 綁定卡片上的檢視／編輯／刪除（編輯＝就地展開，其餘走 favAction）
+function bindFavButtons(scope){
+  scope.querySelectorAll("button[data-act]").forEach(btn=>{
+    if(btn._bound) return; btn._bound=true;
+    btn.addEventListener("click",()=>{
+      if(btn.dataset.act==="edit") toggleFavEditor(btn.dataset.id);
+      else favAction(btn.dataset.act, btn.dataset.id);
+    });
   });
+}
+
+function renderFavs(){
+  closeFavEditor();
+  const favs=loadFavs().slice().sort((a,b)=>b.ts-a.ts);
+  favInfoEl.textContent=favs.length+" 顆收藏 · 儲存在此裝置";
+  if(!favs.length){
+    favGridEl.innerHTML="";
+    favEmptyEl.style.display="block";
+    favEmptyEl.innerHTML="還沒有收藏。<br>到「天梯查詢」點一顆戰刃，填暱稱／照片後按 <b>♥ 加入我的最愛</b>。";
+    return;
+  }
+  favEmptyEl.style.display="none";
+  favGridEl.innerHTML=favs.map(favCardHTML).join("");
+  bindFavButtons(favGridEl);
 }
 
 function favAction(act,id){
@@ -863,10 +930,112 @@ function favAction(act,id){
     if(!confirm(`確定刪除「${f.nick||f.bladeName}」？`)) return;
     saveFavs(favs.filter(x=>x.id!==id)); renderFavs(); return;
   }
+  // 檢視：開啟完整分析彈窗
   const idx=findBladeIndex(f.bladeId,f.bladeName);
   if(idx<0){ alert("找不到對應的戰刃（天梯資料可能已更新）。"); return; }
   switchView("search", true);
-  showDetail(idx, act==="edit" ? f : undefined);
+  showDetail(idx);
+}
+
+/* ── 我的最愛：就地展開編輯區 ── */
+function closeFavEditor(){
+  const ed=favGridEl.querySelector(".fav-editor"); if(ed) ed.remove();
+  favGridEl.querySelectorAll(".fc.editing").forEach(c=>c.classList.remove("editing"));
+  favGridEl.querySelectorAll(".fc-actions button[data-act='edit'].on").forEach(b=>b.classList.remove("on"));
+}
+
+function toggleFavEditor(id){
+  const open=favGridEl.querySelector(".fav-editor");
+  const openId=open?open.dataset.id:null;
+  closeFavEditor();
+  if(openId===id) return;                        // 再按一次＝收合
+  const f=loadFavs().find(x=>x.id===id); if(!f) return;
+  const card=favGridEl.querySelector(`.fc[data-fid="${id}"]`); if(!card) return;
+  const idx=findBladeIndex(f.bladeId,f.bladeName);
+  const b=idx>=0?BLADES[idx]:null;
+  const ed=document.createElement("div");
+  ed.className="fav-editor"; ed.dataset.id=id;
+  ed.innerHTML=favEditorHTML(f,b);
+  card.after(ed);
+  card.classList.add("editing");
+  const eb=card.querySelector("button[data-act='edit']"); if(eb) eb.classList.add("on");
+  bindInlineEditor(ed,f,b);
+  ed.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+// 展開內容：上方＝該陀螺推薦（官方圖＋階級＋熱門配置含零件圖），下方＝編輯欄
+function favEditorHTML(f,b){
+  const rec = b ? `
+    <div class="fe-rec">
+      <div class="fe-pic${b.img?" zoomable":""}"${b.img?` onclick="zoomImg('${esc(b.img)}','${esc(b.name)}')"`:""}>${b.img?`<img src="${esc(b.img)}" alt="${esc(b.name)}" loading="lazy">`:"—"}</div>
+      <div class="fe-recmeta">
+        <div class="fe-recname">${esc(b.name)}</div>
+        <div class="fe-recbadges">
+          <span class="tbadge" style="background:${typeInfo(b.type).color}">${typeInfo(b.type).zh}</span>
+          <span class="tierpill" style="color:${tierColor(b.tier)}">${tierLabel(b.tier)}</span>
+        </div>
+        ${b.combo?`<div class="fe-combo"><span class="fe-combo-lb">熱門配置</span>${linkifyCombo(b.combo)}</div>`:""}
+      </div>
+    </div>` : `<div class="fe-norec">找不到對應天梯資料（可能已更新），仍可編輯暱稱／備註／照片。</div>`;
+  return rec + `
+    <div class="fe-form">
+      <div class="fav-field"><label>暱稱（不填則用戰刃名）</label>
+        <input id="ieNick" type="text" maxlength="40" placeholder="例如：我的主力龍劍"></div>
+      <div class="fav-field"><label>備註 / 你的配置</label>
+        <input id="ieNote" type="text" maxlength="120" placeholder="例如：龍劍 3-60 F 常勝配置"></div>
+      <div class="fav-field"><label>你的陀螺照片（選填，只存在本機）</label></div>
+      <div class="drop" id="ieDrop" role="button" tabindex="0" aria-label="上傳你的陀螺照片">
+        <div class="di">＋ 拍照 / 上傳照片</div>
+        <div class="dp">點這裡開啟相機，或把照片拖進來</div>
+        <div class="fmt">JPG · PNG · WEBP</div></div>
+      <div class="userphoto" id="iePhoto">
+        <div class="pf"><img id="ieImg" alt="你的陀螺照片"></div>
+        <div class="photo-actions"><button class="btn ghost" id="ieRemove">移除照片</button></div></div>
+      <div class="fe-actions">
+        <button class="btn" id="ieSave">儲存變更</button>
+        <button class="btn ghost" id="ieCancel">收合</button>
+      </div>
+      <div class="fav-msg" id="ieMsg"></div>
+    </div>`;
+}
+
+function bindInlineEditor(ed,f,b){
+  let photoSrc=f.photo||null;
+  const $=s=>ed.querySelector(s);
+  const nick=$("#ieNick"), note=$("#ieNote"), drop=$("#ieDrop"),
+    photo=$("#iePhoto"), img=$("#ieImg"), remove=$("#ieRemove"),
+    save=$("#ieSave"), cancel=$("#ieCancel"), msg=$("#ieMsg");
+  nick.value=f.nick||""; note.value=f.note||"";
+  if(photoSrc){ img.src=photoSrc; drop.style.display="none"; photo.classList.add("show"); }
+  const pick=file=>{ if(file) loadPhoto(file,img,drop,photo,v=>photoSrc=v); };
+  drop.addEventListener("click",()=>{ fileEl.onchange=e=>{pick(e.target.files[0]);fileEl.value="";}; fileEl.click(); });
+  drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drop.click();}});
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag");}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag");}));
+  drop.addEventListener("drop",e=>pick(e.dataTransfer.files[0]));
+  remove.addEventListener("click",()=>{ photo.classList.remove("show"); drop.style.display="block"; img.src=""; photoSrc=null; });
+  cancel.addEventListener("click",()=>toggleFavEditor(f.id));
+  save.addEventListener("click",()=>{
+    const favs=loadFavs();
+    const k=favs.findIndex(x=>x.id===f.id); if(k<0) return;
+    const entry=Object.assign({},favs[k],{
+      nick:nick.value.trim(), note:note.value.trim(), photo:photoSrc||null });
+    if(b){ entry.bladeName=b.name; entry.bladeId=b.id||""; entry.type=b.type; entry.tier=b.tier; entry.img=b.img||""; }
+    favs[k]=entry;
+    try{ saveFavs(favs); }
+    catch(e){ msg.style.color="var(--atk)"; msg.textContent="儲存失敗：本機空間可能已滿（照片太多），請刪除部分收藏。"; return; }
+    msg.style.color="var(--sta)"; msg.textContent="✓ 已更新收藏";
+    // 就地更新卡片顯示，保持編輯區展開
+    const card=favGridEl.querySelector(`.fc[data-fid="${f.id}"]`);
+    if(card){
+      const tmp=document.createElement("div"); tmp.innerHTML=favCardHTML(entry);
+      const fresh=tmp.firstElementChild;
+      fresh.classList.add("editing");
+      const eb=fresh.querySelector("button[data-act='edit']"); if(eb) eb.classList.add("on");
+      card.replaceWith(fresh);
+      bindFavButtons(fresh);
+    }
+  });
 }
 
 /* ── 配件天梯（固鎖 / 軸心） ── */
@@ -987,6 +1156,7 @@ function gotoPart(kind,name){
 /* ── 分頁切換 ── */
 function switchView(v, keepDetail){
   activeView=v;
+  closeFavEditor();
   searchViewEl.style.display=v==="search"?"block":"none";
   partsViewEl.style.display=v==="parts"?"block":"none";
   favViewEl.style.display=v==="favs"?"block":"none";
