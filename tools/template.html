@@ -193,12 +193,13 @@
     18%{border-color:var(--accent);box-shadow:0 0 0 2px rgba(18,239,206,.35),0 8px 26px rgba(18,239,206,.25)}}
   .pc-hint{font-size:.74rem;color:var(--accent);margin-top:7px;line-height:1.4}
   .pc-note{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.55}
-  .pc-count{font-family:"Orbitron";font-size:.58rem;letter-spacing:.1em;color:var(--muted);
+  .pc-count{font-family:"Orbitron";font-size:.58rem;letter-spacing:.1em;color:var(--accent);
     margin-top:10px;background:none;border:0;cursor:pointer;padding:4px 0;
     display:inline-flex;align-items:center;gap:6px;transition:color .15s}
-  .pc-count:hover,.pc-count.on{color:var(--accent)}
+  .pc-count:hover,.pc-count.on{color:var(--accent2)}
   .pc-count:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .pc-count-n{font-weight:900;color:var(--text)}
+  .pc-count-lb{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  .pc-count-n{font-weight:900}
   .pc-caret{display:inline-block;transition:transform .18s}
   .pc-count.on .pc-caret{transform:rotate(180deg)}
   .pc-users{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
@@ -391,6 +392,11 @@
     .block,.photo-sec{padding:16px}
     .parts{grid-template-columns:1fr}
     .fc .fc-img img{max-height:240px}
+    /* 詳情大圖：固定方形比例，內縮避免斜角切到陀螺底部 */
+    .card-hero .pic{width:min(64vw,200px);height:auto;aspect-ratio:1;padding:10px}
+    /* 採用清單：手機改單欄、名稱可折行完整顯示，避免只看到一個字 */
+    .pc-users{grid-template-columns:1fr}
+    .pu-name{white-space:normal;line-height:1.3}
     /* 彈窗手機版：貼齊邊、關閉鈕移入卡內 */
     .detail{padding:14px 10px}
     .modal-close{top:6px;right:6px;width:38px;height:38px}
@@ -1155,7 +1161,7 @@ function renderParts(){
           ${hint?`<div class="pc-hint">${esc(hint)}</div>`:""}
           <div class="pc-note">${esc(partNote(key,isR))}</div>
           <button class="pc-count" type="button" aria-expanded="false">
-            <span class="pc-count-n">${o.count}</span> 款戰刃採用 <span class="pc-caret">▾</span></button>
+            <span class="pc-count-lb"><span class="pc-count-n">${o.count}</span> 款戰刃採用</span> <span class="pc-caret">▾</span></button>
           <div class="pc-users">${o.users.map(i=>{
             const u=BLADES[i], uti=typeInfo(u.type);
             return `<div class="puser" data-i="${i}" role="button" tabindex="0" title="${esc(u.name)}">
