@@ -202,19 +202,27 @@
   .pc-count-n{font-weight:900}
   .pc-caret{display:inline-block;transition:transform .18s}
   .pc-count.on .pc-caret{transform:rotate(180deg)}
-  .pc-users{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-    gap:8px;margin-top:10px}
-  .pc-users.show{display:grid;animation:fade .2s ease both}
-  .puser{display:flex;align-items:center;gap:8px;padding:7px 9px;min-width:0;
+  /* 採用清單彈窗 */
+  .pu-modal-head{display:flex;align-items:center;gap:14px;padding:20px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(120deg,rgba(18,239,206,.10),transparent 55%)}
+  .pu-modal-head .pc-thumb{width:58px;height:58px}
+  .pu-modal-kind{font-family:"Orbitron";font-size:.56rem;letter-spacing:.2em;color:var(--muted)}
+  .pu-modal-name{font-family:"Orbitron";font-weight:900;font-size:1.2rem;margin-top:5px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pu-modal-sub{font-family:"Orbitron";font-size:.58rem;letter-spacing:.1em;color:var(--dim);margin-top:6px}
+  .pu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:18px}
+  .puser{display:flex;align-items:center;gap:10px;padding:9px 11px;min-width:0;
     border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer;
     transition:border-color .15s,transform .1s}
   .puser:hover{border-color:var(--accent);transform:translateY(-1px)}
   .puser:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .pu-thumb{flex:0 0 auto;width:34px;height:34px;border-radius:6px;overflow:hidden;
+  .pu-thumb{flex:0 0 auto;width:40px;height:40px;border-radius:6px;overflow:hidden;
     background:#05060a;display:grid;place-items:center}
   .pu-thumb img{width:100%;height:100%;object-fit:contain}
-  .pu-name{flex:1;min-width:0;font-size:.82rem;font-weight:700;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pu-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .pu-name{font-size:.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pu-id{font-family:"Orbitron";font-size:.56rem;letter-spacing:.06em;color:var(--dim)}
   .pu-badge{flex:0 0 auto;font-family:"Orbitron";font-size:.54rem;font-weight:900;color:#06090f;
     width:18px;height:18px;display:grid;place-items:center;border-radius:3px}
   .puser .tierpill{flex:0 0 auto;font-size:.52rem;padding:1px 5px}
@@ -394,8 +402,8 @@
     .fc .fc-img img{max-height:240px}
     /* 詳情大圖：固定方形比例，內縮避免斜角切到陀螺底部 */
     .card-hero .pic{width:min(64vw,200px);height:auto;aspect-ratio:1;padding:10px}
-    /* 採用清單：手機改單欄、名稱可折行完整顯示，避免只看到一個字 */
-    .pc-users{grid-template-columns:1fr}
+    /* 採用清單彈窗：手機單欄，名稱可折行完整顯示 */
+    .pu-list{grid-template-columns:1fr;padding:14px}
     .pu-name{white-space:normal;line-height:1.3}
     /* 彈窗手機版：貼齊邊、關閉鈕移入卡內 */
     .detail{padding:14px 10px}
@@ -464,6 +472,9 @@
 
   <!-- detail -->
   <div class="detail" id="detail"></div>
+
+  <!-- 採用清單彈窗 -->
+  <div class="detail" id="partModal"></div>
 
   <!-- 圖片放大 lightbox -->
   <div class="lightbox" id="lightbox" aria-hidden="true">
@@ -1160,36 +1171,68 @@ function renderParts(){
           </div>
           ${hint?`<div class="pc-hint">${esc(hint)}</div>`:""}
           <div class="pc-note">${esc(partNote(key,isR))}</div>
-          <button class="pc-count" type="button" aria-expanded="false">
-            <span class="pc-count-lb"><span class="pc-count-n">${o.count}</span> 款戰刃採用</span> <span class="pc-caret">▾</span></button>
-          <div class="pc-users">${o.users.map(i=>{
-            const u=BLADES[i], uti=typeInfo(u.type);
-            return `<div class="puser" data-i="${i}" role="button" tabindex="0" title="${esc(u.name)}">
-              <span class="pu-thumb">${u.img?`<img src="${esc(u.img)}" alt="" loading="lazy">`:""}</span>
-              <span class="pu-name">${esc(u.name)}</span>
-              <span class="pu-badge" style="background:${uti.color}">${uti.ini}</span>
-              <span class="tierpill" style="color:${tierColor(u.tier)}">${tierLabel(u.tier)}</span>
-            </div>`;
-          }).join("")}</div>
+          <button class="pc-count" type="button">
+            <span class="pc-count-lb"><span class="pc-count-n">${o.count}</span> 款戰刃採用</span> <span class="pc-caret">›</span></button>
         </div>`;
       }).join("")}</div>
     </div>`;
   }).join("");
 
-  // 「X 款戰刃採用」→ 展開／收合採用清單
+  // 「X 款戰刃採用」→ 跳出視窗顯示採用清單
   partsBodyEl.querySelectorAll(".pc-count").forEach(btn=>btn.addEventListener("click",()=>{
-    const users=btn.nextElementSibling;
-    const open=users.classList.toggle("show");
-    btn.classList.toggle("on",open);
-    btn.setAttribute("aria-expanded",open?"true":"false");
+    const name=btn.closest(".pc").dataset.part;
+    openPartUsers(activePartKind,name);
   }));
-  // 清單中的戰刃 → 開啟該戰刃詳情
-  partsBodyEl.querySelectorAll(".puser").forEach(el=>{
-    const open=()=>showDetail(+el.dataset.i);
+}
+
+/* ── 採用清單彈窗（列出採用某固鎖／軸心的戰刃） ── */
+const partModalEl=document.getElementById("partModal");
+function openPartUsers(kind,name){
+  const o=buildParts(kind).find(x=>x.name===name); if(!o) return;
+  const isR=kind==="ratchet", img=partImg(name);
+  const rows=o.users.slice()
+    .sort((a,b)=>tierRank(BLADES[b].tier)-tierRank(BLADES[a].tier)||BLADES[a].name.localeCompare(BLADES[b].name,"zh-Hant"))
+    .map(i=>{
+      const u=BLADES[i], uti=typeInfo(u.type);
+      return `<div class="puser" data-i="${i}" role="button" tabindex="0" title="${esc(u.name)}">
+        <span class="pu-thumb">${u.img?`<img src="${esc(u.img)}" alt="" loading="lazy">`:""}</span>
+        <span class="pu-info"><span class="pu-name">${esc(u.name)}</span>${u.id?`<span class="pu-id">${esc(u.id)}</span>`:""}</span>
+        <span class="pu-badge" style="background:${uti.color}">${uti.ini}</span>
+        <span class="tierpill" style="color:${tierColor(u.tier)}">${tierLabel(u.tier)}</span>
+      </div>`;
+    }).join("");
+  partModalEl.innerHTML=`
+    <div class="modal-box">
+    <button class="modal-close" onclick="closePartUsers()" aria-label="關閉">✕</button>
+    <div class="card">
+      <div class="pu-modal-head">
+        <span class="pc-thumb${img?" zoomable":""}"${img?` onclick="zoomImg('${esc(img)}','${esc(name)}')"`:""}>${img?`<img src="${esc(img)}" alt="${esc(name)}" loading="lazy">`:""}</span>
+        <div class="pu-modal-meta">
+          <div class="pu-modal-kind">${isR?"固鎖 RATCHET":"軸心 BIT"}</div>
+          <div class="pu-modal-name">${esc(name)}<span class="tierpill" style="color:${tierColor(o.tier)}">${tierLabel(o.tier)}</span></div>
+          <div class="pu-modal-sub">共 ${o.count} 款戰刃採用</div>
+        </div>
+      </div>
+      <div class="pu-list">${rows}</div>
+    </div></div>`;
+  partModalEl.classList.add("show");
+  document.body.classList.add("modal-open");
+  partModalEl.scrollTop=0;
+  partModalEl.querySelectorAll(".puser").forEach(el=>{
+    const open=()=>{ closePartUsers(); showDetail(+el.dataset.i); };
     el.addEventListener("click",open);
     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
   });
 }
+function closePartUsers(){
+  partModalEl.classList.remove("show"); partModalEl.innerHTML="";
+  if(!detailEl.classList.contains("show")) document.body.classList.remove("modal-open");
+}
+partModalEl.addEventListener("click",e=>{ if(e.target===partModalEl) closePartUsers(); });
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape" && partModalEl.classList.contains("show") && !lightboxEl.classList.contains("show"))
+    closePartUsers();
+});
 
 // 從陀螺詳情點零件 → 跳到配件天梯並定位／閃爍該零件
 function gotoPart(kind,name){
