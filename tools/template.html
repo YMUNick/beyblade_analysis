@@ -193,7 +193,30 @@
     18%{border-color:var(--accent);box-shadow:0 0 0 2px rgba(18,239,206,.35),0 8px 26px rgba(18,239,206,.25)}}
   .pc-hint{font-size:.74rem;color:var(--accent);margin-top:7px;line-height:1.4}
   .pc-note{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.55}
-  .pc-count{font-family:"Orbitron";font-size:.54rem;letter-spacing:.1em;color:var(--dim);margin-top:8px}
+  .pc-count{font-family:"Orbitron";font-size:.58rem;letter-spacing:.1em;color:var(--muted);
+    margin-top:10px;background:none;border:0;cursor:pointer;padding:4px 0;
+    display:inline-flex;align-items:center;gap:6px;transition:color .15s}
+  .pc-count:hover,.pc-count.on{color:var(--accent)}
+  .pc-count:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .pc-count-n{font-weight:900;color:var(--text)}
+  .pc-caret{display:inline-block;transition:transform .18s}
+  .pc-count.on .pc-caret{transform:rotate(180deg)}
+  .pc-users{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:8px;margin-top:10px}
+  .pc-users.show{display:grid;animation:fade .2s ease both}
+  .puser{display:flex;align-items:center;gap:8px;padding:7px 9px;min-width:0;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer;
+    transition:border-color .15s,transform .1s}
+  .puser:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .puser:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .pu-thumb{flex:0 0 auto;width:34px;height:34px;border-radius:6px;overflow:hidden;
+    background:#05060a;display:grid;place-items:center}
+  .pu-thumb img{width:100%;height:100%;object-fit:contain}
+  .pu-name{flex:1;min-width:0;font-size:.82rem;font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pu-badge{flex:0 0 auto;font-family:"Orbitron";font-size:.54rem;font-weight:900;color:#06090f;
+    width:18px;height:18px;display:grid;place-items:center;border-radius:3px}
+  .puser .tierpill{flex:0 0 auto;font-size:.52rem;padding:1px 5px}
 
   /* ── detail modal（彈出視窗） ── */
   .detail{display:none;position:fixed;inset:0;z-index:50;
@@ -1044,13 +1067,13 @@ let activePartKind="ratchet";
 // 把所有戰刃用到的固鎖／軸心彙整成一份清單（同名取最高階級，並統計採用數）
 function buildParts(kind){
   const map=new Map();
-  BLADES.forEach(b=>{
+  BLADES.forEach((b,idx)=>{
     const name=kind==="ratchet"?b.ratchet:b.bit;
     const tier=kind==="ratchet"?b.ratchetTier:b.bitTier;
     if(!name) return;
-    if(!map.has(name)) map.set(name,{name,tier,count:0});
+    if(!map.has(name)) map.set(name,{name,tier,count:0,users:[]});
     const o=map.get(name);
-    o.count++;
+    o.count++; o.users.push(idx);            // 記錄採用此零件的戰刃，供展開清單用
     if(tierRank(tier)>tierRank(o.tier)) o.tier=tier;
   });
   return [...map.values()];
@@ -1131,11 +1154,35 @@ function renderParts(){
           </div>
           ${hint?`<div class="pc-hint">${esc(hint)}</div>`:""}
           <div class="pc-note">${esc(partNote(key,isR))}</div>
-          <div class="pc-count">${o.count} 款戰刃採用</div>
+          <button class="pc-count" type="button" aria-expanded="false">
+            <span class="pc-count-n">${o.count}</span> 款戰刃採用 <span class="pc-caret">▾</span></button>
+          <div class="pc-users">${o.users.map(i=>{
+            const u=BLADES[i], uti=typeInfo(u.type);
+            return `<div class="puser" data-i="${i}" role="button" tabindex="0" title="${esc(u.name)}">
+              <span class="pu-thumb">${u.img?`<img src="${esc(u.img)}" alt="" loading="lazy">`:""}</span>
+              <span class="pu-name">${esc(u.name)}</span>
+              <span class="pu-badge" style="background:${uti.color}">${uti.ini}</span>
+              <span class="tierpill" style="color:${tierColor(u.tier)}">${tierLabel(u.tier)}</span>
+            </div>`;
+          }).join("")}</div>
         </div>`;
       }).join("")}</div>
     </div>`;
   }).join("");
+
+  // 「X 款戰刃採用」→ 展開／收合採用清單
+  partsBodyEl.querySelectorAll(".pc-count").forEach(btn=>btn.addEventListener("click",()=>{
+    const users=btn.nextElementSibling;
+    const open=users.classList.toggle("show");
+    btn.classList.toggle("on",open);
+    btn.setAttribute("aria-expanded",open?"true":"false");
+  }));
+  // 清單中的戰刃 → 開啟該戰刃詳情
+  partsBodyEl.querySelectorAll(".puser").forEach(el=>{
+    const open=()=>showDetail(+el.dataset.i);
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+  });
 }
 
 // 從陀螺詳情點零件 → 跳到配件天梯並定位／閃爍該零件
