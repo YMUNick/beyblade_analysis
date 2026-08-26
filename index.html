@@ -115,6 +115,9 @@
   .fc .fc-tags{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
   .fc .fc-note{font-size:.82rem;color:#cdd6df;line-height:1.5;margin-top:10px;
     white-space:pre-wrap;word-break:break-word}
+  .fc .fc-config{margin-top:10px;line-height:1.9}
+  .fc .fc-config-lb{font-family:"Orbitron";font-size:.5rem;letter-spacing:.12em;color:var(--accent);
+    display:block;margin-bottom:3px}
   .fc .fc-date{font-family:"Orbitron";font-size:.54rem;letter-spacing:.1em;color:var(--dim);margin-top:10px}
   .fc .fc-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
   .fc .fc-actions button{flex:1;font-family:"Orbitron";font-size:.66rem;letter-spacing:.06em;
@@ -148,6 +151,15 @@
     margin-bottom:14px;border-bottom:1px solid var(--line)}
   .fe-actions{display:flex;gap:10px;margin-top:14px}
   .fe-actions .btn{flex:1}
+  /* 配置下拉＋即時零件圖 */
+  .fe-selrow{display:flex;align-items:center;gap:10px}
+  .fe-selthumb{flex:0 0 auto;width:40px;height:40px;border-radius:8px;overflow:hidden;
+    background:#05060a;display:grid;place-items:center;border:1px solid var(--line2)}
+  .fe-selthumb img{width:100%;height:100%;object-fit:contain}
+  .fe-selrow select{flex:1;min-width:0;padding:11px 12px;font-size:.9rem;color:var(--text);
+    font-family:"Noto Sans TC",sans-serif;background:rgba(255,255,255,.03);
+    border:1px solid var(--line2);outline:none;cursor:pointer}
+  .fe-selrow select:focus{border-color:var(--accent)}
   @media(max-width:600px){.fe-pic{width:100%;height:180px}}
 
   /* ── results grid ── */
@@ -538,6 +550,16 @@ const PART_TIER = (()=>{ const m={};
 
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+// 客製化配置用：所有固鎖／軸心清單（依名稱排序）＋下拉選項產生器
+const RATCHET_LIST = Object.keys(PART_IMG).filter(n=>/^[0-9A-Za-z]+-\d+$/.test(n)).sort();
+const BIT_LIST     = Object.keys(PART_IMG).filter(n=>!/^[0-9A-Za-z]+-\d+$/.test(n)).sort();
+function partOptions(list,sel){
+  return `<option value="">（未設定）</option>`+list.map(n=>{
+    const t=PART_TIER[n]||"";
+    return `<option value="${esc(n)}"${n===sel?" selected":""}>${esc(n)}${t?`（${t}）`:""}</option>`;
+  }).join("");
+}
+
 /* ── DOM ── */
 const searchEl=document.getElementById("search"),
   resultsEl=document.getElementById("results"),
@@ -897,6 +919,7 @@ function bindFavSave(){
     const entry={
       id: editingFavId || ("f"+Date.now()+Math.floor(Math.random()*1000)),
       bladeId:b.id||"", bladeName:b.name, type:b.type, tier:b.tier, img:b.img||"",
+      ratchet:b.ratchet||"", bit:b.bit||"",   // 預設沿用原裝配置，可於編輯裡改
       nick, note, photo:userPhotoSrc||null, ts:Date.now()
     };
     if(editingFavId){
@@ -929,6 +952,7 @@ function favCardHTML(f){
           <span class="tbadge" style="background:${ti.color}">${ti.zh}</span>
           <span class="tierpill" style="color:${tc}">${tierLabel(f.tier)}</span>
         </div>
+        ${(f.ratchet||f.bit)?`<div class="fc-config"><span class="fc-config-lb">我的配置</span>${linkifyCombo([f.ratchet,f.bit].filter(Boolean).join(" "))}</div>`:""}
         ${f.note?`<div class="fc-note">${esc(f.note)}</div>`:""}
         <div class="fc-date">收藏於 ${ds}</div>
         <div class="fc-actions">
@@ -1018,13 +1042,21 @@ function favEditorHTML(f,b){
         </div>
         ${b.combo?`<div class="fe-combo"><span class="fe-combo-lb">熱門配置</span>${linkifyCombo(b.combo)}</div>`:""}
       </div>
-    </div>` : `<div class="fe-norec">找不到對應天梯資料（可能已更新），仍可編輯暱稱／備註／照片。</div>`;
+    </div>` : `<div class="fe-norec">找不到對應天梯資料（可能已更新），仍可編輯暱稱／備註／配置／照片。</div>`;
+  const defR = ("ratchet" in f) ? (f.ratchet||"") : (b ? b.ratchet||"" : "");
+  const defB = ("bit" in f)     ? (f.bit||"")     : (b ? b.bit||""     : "");
   return rec + `
     <div class="fe-form">
       <div class="fav-field"><label>暱稱（不填則用戰刃名）</label>
         <input id="ieNick" type="text" maxlength="40" placeholder="例如：我的主力龍劍"></div>
-      <div class="fav-field"><label>備註 / 你的配置</label>
-        <input id="ieNote" type="text" maxlength="120" placeholder="例如：龍劍 3-60 F 常勝配置"></div>
+      <div class="fav-field"><label>備註</label>
+        <input id="ieNote" type="text" maxlength="120" placeholder="例如：常勝配置、比賽用"></div>
+      <div class="fav-field"><label>固鎖 RATCHET（我的配置）</label>
+        <div class="fe-selrow"><span class="fe-selthumb" id="ieRThumb"></span>
+          <select id="ieRatchet">${partOptions(RATCHET_LIST, defR)}</select></div></div>
+      <div class="fav-field"><label>軸心 BIT（我的配置）</label>
+        <div class="fe-selrow"><span class="fe-selthumb" id="ieBThumb"></span>
+          <select id="ieBit">${partOptions(BIT_LIST, defB)}</select></div></div>
       <div class="fav-field"><label>你的陀螺照片（選填，只存在本機）</label></div>
       <div class="drop" id="ieDrop" role="button" tabindex="0" aria-label="上傳你的陀螺照片">
         <div class="di">＋ 拍照 / 上傳照片</div>
@@ -1046,9 +1078,16 @@ function bindInlineEditor(ed,f,b){
   const $=s=>ed.querySelector(s);
   const nick=$("#ieNick"), note=$("#ieNote"), drop=$("#ieDrop"),
     photo=$("#iePhoto"), img=$("#ieImg"), remove=$("#ieRemove"),
-    save=$("#ieSave"), cancel=$("#ieCancel"), msg=$("#ieMsg");
+    save=$("#ieSave"), cancel=$("#ieCancel"), msg=$("#ieMsg"),
+    ratchetSel=$("#ieRatchet"), bitSel=$("#ieBit"),
+    rThumb=$("#ieRThumb"), bThumb=$("#ieBThumb");
   nick.value=f.nick||""; note.value=f.note||"";
   if(photoSrc){ img.src=photoSrc; drop.style.display="none"; photo.classList.add("show"); }
+  // 配置下拉：選取時即時顯示零件圖
+  const setThumb=(el,name)=>{ const im=partImg(name); el.innerHTML=im?`<img src="${esc(im)}" alt="${esc(name)}">`:""; };
+  setThumb(rThumb,ratchetSel.value); setThumb(bThumb,bitSel.value);
+  ratchetSel.addEventListener("change",()=>setThumb(rThumb,ratchetSel.value));
+  bitSel.addEventListener("change",()=>setThumb(bThumb,bitSel.value));
   const pick=file=>{ if(file) loadPhoto(file,img,drop,photo,v=>photoSrc=v); };
   drop.addEventListener("click",()=>{ fileEl.onchange=e=>{pick(e.target.files[0]);fileEl.value="";}; fileEl.click(); });
   drop.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drop.click();}});
@@ -1061,7 +1100,8 @@ function bindInlineEditor(ed,f,b){
     const favs=loadFavs();
     const k=favs.findIndex(x=>x.id===f.id); if(k<0) return;
     const entry=Object.assign({},favs[k],{
-      nick:nick.value.trim(), note:note.value.trim(), photo:photoSrc||null });
+      nick:nick.value.trim(), note:note.value.trim(), photo:photoSrc||null,
+      ratchet:ratchetSel.value, bit:bitSel.value });
     if(b){ entry.bladeName=b.name; entry.bladeId=b.id||""; entry.type=b.type; entry.tier=b.tier; entry.img=b.img||""; }
     favs[k]=entry;
     try{ saveFavs(favs); }
